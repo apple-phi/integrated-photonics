@@ -6,9 +6,6 @@ lambda = 1550e-9; % wavelength in meters
 % Use CSV-based interpolation for refractive indices
 n_Si = get_n('Si', lambda);
 n_SiO2 = get_n('SiO2', lambda);
-disp(['Using refractive index for Si at ', num2str(lambda*1e9), ' nm: ', num2str(n_Si)]);
-disp(['Using refractive index for SiO2 at ', num2str(lambda*1e9), ' nm: ', num2str(n_SiO2)]);
-
 num_modes = find_modes(n_Si, n_SiO2, 300e-9, lambda);
 for i = 1:num_modes(1)
     disp(['Mode ', num2str(i-1), ' is supported.']);
@@ -43,8 +40,6 @@ for j = 1:length(wavelengths)
     lambda = wavelengths(j);
     n_Si = get_n('Si', lambda);
     n_SiO2 = get_n('SiO2', lambda);
-    disp(['Using refractive index for Si at ', num2str(lambda*1e9), ' nm: ', num2str(n_Si)]);
-    disp(['Using refractive index for SiO2 at ', num2str(lambda*1e9), ' nm: ', num2str(n_SiO2)]);
     num_modes_all(:, j) = find_modes(n_Si, n_SiO2, thicknesses, lambda);
 end
 figure;
@@ -82,10 +77,10 @@ end
 
 function n = get_n(material, lambda)
 % Get refractive index n for a material at wavelength lambda (in meters) using CSV data
-% The CSV files are expected to be in the 'data' folder and have columns: wl (um), n
+% The CSV files are expected to be in the 'materials' folder and have columns: wl (um), n
 
-% Discover all CSV files in the data folder
-csv_files = dir(fullfile('data', '*.csv'));
+% Discover all CSV files in the materials folder
+csv_files = dir(fullfile('materials', '*.csv'));
 material_found = false;
 
 for k = 1:length(csv_files)
@@ -94,14 +89,14 @@ for k = 1:length(csv_files)
     fname_clean = lower(regexprep(fname, '[\s\-_.]', ''));
     material_clean = lower(regexprep(material, '[\s\-_.]', ''));
     if contains(fname_clean, material_clean)
-        filename = fullfile('data', fname);
+        filename = fullfile('materials', fname);
         material_found = true;
         break;
     end
 end
 
 if ~material_found
-    error(['Material file for "', material, '" not found in data folder.']);
+    error(['Material file for "', material, '" not found in materials folder.']);
 end
 
 T = readtable(filename);
@@ -123,4 +118,5 @@ if isempty(wl_um_unique) || isempty(n_vals_unique)
 end
 
 n = interp1(wl_um_unique, n_vals_unique, lambda_um, 'linear', 'extrap');
+disp(['Using refractive index for ', material, ' at ', num2str(lambda * 1e9), ' nm: ', num2str(n)]);
 end
