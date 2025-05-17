@@ -1,4 +1,4 @@
-function num_modes = find_modes(n_core, n_clad, thicknesses, lambda)
+function num_modes = find_num_modes(n_core, n_clad, thicknesses, lambda)
 % FIND_MODES Calculate the number of supported modes for given core and cladding
 % refractive indices, core thicknesses, and wavelength.
 %

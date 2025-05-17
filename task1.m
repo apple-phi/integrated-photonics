@@ -5,8 +5,9 @@
 lambda = 1550e-9; % wavelength in meters
 n_Si = sb4.get_n('Si', lambda);
 n_SiO2 = sb4.get_n('SiO2', lambda);
-num_modes = sb4.planar.find_modes(n_Si, n_SiO2, 300e-9, lambda);
-for i = 1:num_modes(1)
+num_modes_Si = sb4.planar.find_num_modes(n_Si, n_SiO2, 300e-9, lambda);
+disp(['Number of supported modes for Si+SiO2 at 300nm: ', num2str(num_modes_Si(1))]);
+for i = 1:num_modes_Si(1)
     disp(['Mode ', num2str(i-1), ' is supported.']);
 end
 
@@ -15,10 +16,10 @@ end
 % and plot the number of modes supported by the planar waveguide against
 % its core thickness
 thicknesses = 200e-9:100e-9:1e-6; % core thicknesses from 200 nm to 1 μm
-num_modes = sb4.planar.find_modes(n_Si, n_SiO2, thicknesses, lambda);
+num_modes_Si = sb4.planar.find_num_modes(n_Si, n_SiO2, thicknesses, lambda);
 
 figure;
-plot(thicknesses * 1e6, num_modes, '-o');
+plot(thicknesses * 1e6, num_modes_Si, '-o');
 xlabel('Core Thickness (μm)');
 ylabel('Number of Supported Modes');
 title('Supported Modes vs Core Thickness for SOI Waveguide at 1550 nm');
@@ -34,17 +35,20 @@ legend('1550 nm');
 
 n_SiN = sb4.get_n('Si3N4', lambda); % Silicon Nitride
 n_LiNbO3 = sb4.get_n('LiNbO3', lambda); % Lithium Niobate
-num_modes_SiN = sb4.planar.find_modes(n_SiN, n_SiO2, thicknesses, lambda);
-num_modes_LiNbO3 = sb4.planar.find_modes(n_LiNbO3, n_SiO2, thicknesses, lambda);
+n_GaAs = sb4.get_n('GaAs', lambda); % Gallium Arsenide
+num_modes_SiN = sb4.planar.find_num_modes(n_SiN, n_SiO2, thicknesses, lambda);
+num_modes_LiNbO3 = sb4.planar.find_num_modes(n_LiNbO3, n_SiO2, thicknesses, lambda);
+num_modes_GaAs = sb4.planar.find_num_modes(n_GaAs, n_SiO2, thicknesses, lambda);
 figure;
-plot(thicknesses * 1e6, num_modes_SiN, '-o', ...
+plot(thicknesses * 1e6, num_modes_Si, '-o', ...
+    thicknesses * 1e6, num_modes_SiN, '-o', ...
     thicknesses * 1e6, num_modes_LiNbO3, '-x', ...
-    thicknesses * 1e6, num_modes, '-s');
+    thicknesses * 1e6, num_modes_GaAs, '-s');
 xlabel('Core Thickness (μm)');
 ylabel('Number of Supported Modes');
 title('Supported Modes vs Core Thickness for Different Materials at 1550 nm');
 grid on;
-legend('Si3N4', 'LiNbO3', 'Si (1550 nm)');
+legend('Si', 'Si3N4', 'LiNbO3', 'GaAs');
 % The analysis shows that silicon nitride supports more modes than silicon
 % at the same core thickness, while lithium niobate supports fewer modes.
 % This is due to the different refractive index contrasts between the core
@@ -64,13 +68,13 @@ legend('Si3N4', 'LiNbO3', 'Si (1550 nm)');
 % and discuss how operating wavelength affects the number of supported
 % modes.
 
-wavelengths = [1310e-9, 1550e-9, 1600e-9, 1700e-9]; % wavelengths in meters
+wavelengths = [850e-9, 1310e-9, 1550e-9, 1600e-9, 2000e-9]; % wavelengths in meters
 num_modes_all = zeros(length(thicknesses), length(wavelengths));
 for j = 1:length(wavelengths)
     lambda = wavelengths(j);
     n_Si = sb4.get_n('Si', lambda);
     n_SiO2 = sb4.get_n('SiO2', lambda);
-    num_modes_all(:, j) = sb4.planar.find_modes(n_Si, n_SiO2, thicknesses, lambda);
+    num_modes_all(:, j) = sb4.planar.find_num_modes(n_Si, n_SiO2, thicknesses, lambda);
 end
 figure;
 plot(thicknesses * 1e6, num_modes_all, '-o');
