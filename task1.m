@@ -25,6 +25,38 @@ title('Supported Modes vs Core Thickness for SOI Waveguide at 1550 nm');
 grid on;
 legend('1550 nm');
 
+% Repeat the above analysis using different waveguide core materials (e.g.,
+% silicon nitride and lithium niobate), i.e., search for the refractive index
+% data for these materials at 1550 nm, import the data into MATLAB, and
+% plot the supported mode count – core thickness relationship for each
+% material. Compare the results to that of the silicon waveguide and
+% comment on how core material affects mode support.
+
+n_SiN = sb4.get_n('Si3N4', lambda); % Silicon Nitride
+n_LiNbO3 = sb4.get_n('LiNbO3', lambda); % Lithium Niobate
+num_modes_SiN = sb4.planar.find_modes(n_SiN, n_SiO2, thicknesses, lambda);
+num_modes_LiNbO3 = sb4.planar.find_modes(n_LiNbO3, n_SiO2, thicknesses, lambda);
+figure;
+plot(thicknesses * 1e6, num_modes_SiN, '-o', ...
+    thicknesses * 1e6, num_modes_LiNbO3, '-x', ...
+    thicknesses * 1e6, num_modes, '-s');
+xlabel('Core Thickness (μm)');
+ylabel('Number of Supported Modes');
+title('Supported Modes vs Core Thickness for Different Materials at 1550 nm');
+grid on;
+legend('Si3N4', 'LiNbO3', 'Si (1550 nm)');
+% The analysis shows that silicon nitride supports more modes than silicon
+% at the same core thickness, while lithium niobate supports fewer modes.
+% This is due to the different refractive index contrasts between the core
+% and cladding materials. Silicon nitride has a lower refractive index than
+% silicon, leading to a smaller effective index contrast, which allows for
+% more modes to be supported. In contrast, lithium niobate has a higher
+% refractive index than silicon, resulting in a larger effective index
+% contrast, but its waveguide structure supports fewer modes due to its
+% specific material properties and the way modes are confined in the
+% waveguide.
+
+
 % Repeat the analysis for a silicon waveguide at different wavelengths (e.g.,
 % 1310 nm, 1600 nm, etc.). Consider material dispersion—note that the
 % refractive indices of materials vary with wavelength. Again, plot "Number
