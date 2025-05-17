@@ -3,10 +3,9 @@
 % thickness of 300 nm, operating at 1550 nm. Use the cutoff condition for
 % planar waveguides
 lambda = 1550e-9; % wavelength in meters
-% Use CSV-based interpolation for refractive indices
-n_Si = get_n('Si', lambda);
-n_SiO2 = get_n('SiO2', lambda);
-num_modes = find_modes(n_Si, n_SiO2, 300e-9, lambda);
+n_Si = sb4.get_n('Si', lambda);
+n_SiO2 = sb4.get_n('SiO2', lambda);
+num_modes = sb4.planar.find_modes(n_Si, n_SiO2, 300e-9, lambda);
 for i = 1:num_modes(1)
     disp(['Mode ', num2str(i-1), ' is supported.']);
 end
@@ -16,9 +15,8 @@ end
 % and plot the number of modes supported by the planar waveguide against
 % its core thickness
 thicknesses = 200e-9:100e-9:1e-6; % core thicknesses from 200 nm to 1 μm
-num_modes = find_modes(n_Si, n_SiO2, thicknesses, lambda);
+num_modes = sb4.planar.find_modes(n_Si, n_SiO2, thicknesses, lambda);
 
-% Plot the results and make it pretty
 figure;
 plot(thicknesses * 1e6, num_modes, '-o');
 xlabel('Core Thickness (μm)');
@@ -38,9 +36,9 @@ wavelengths = [1310e-9, 1550e-9, 1600e-9, 1700e-9]; % wavelengths in meters
 num_modes_all = zeros(length(thicknesses), length(wavelengths));
 for j = 1:length(wavelengths)
     lambda = wavelengths(j);
-    n_Si = get_n('Si', lambda);
-    n_SiO2 = get_n('SiO2', lambda);
-    num_modes_all(:, j) = find_modes(n_Si, n_SiO2, thicknesses, lambda);
+    n_Si = sb4.get_n('Si', lambda);
+    n_SiO2 = sb4.get_n('SiO2', lambda);
+    num_modes_all(:, j) = sb4.planar.find_modes(n_Si, n_SiO2, thicknesses, lambda);
 end
 figure;
 plot(thicknesses * 1e6, num_modes_all, '-o');
@@ -63,60 +61,3 @@ legend(arrayfun(@(x) sprintf('%.0f nm', x * 1e9), wavelengths, 'UniformOutput', 
 % The analysis shows that for a silicon-on-insulator waveguide, the number of supported modes
 % decreases as the wavelength increases, highlighting the importance of considering
 % wavelength in the design of photonic devices.
-
-function num_modes = find_modes(n_core, n_clad, thicknesses, lambda)
-% Calculate the number of supported modes for given core and cladding
-% refractive indices, core thicknesses, and wavelength.
-num_modes = zeros(size(thicknesses)); % preallocate array for number of modes
-for i = 1:length(thicknesses)
-    t_g = thicknesses(i); % current core thickness
-    LHS = 2 * t_g * sqrt(n_core^2 - n_clad^2); % left-hand side of cutoff condition
-    num_modes(i) = sum(LHS > (0:5) * lambda); % count supported modes
-end
-end
-
-function n = get_n(material, lambda)
-% Get refractive index n for a material at wavelength lambda (in meters) using CSV data
-% The CSV files are expected to be in the 'materials' folder and have columns: wl (um), n
-
-% Discover all CSV files in the materials folder
-csv_files = dir(fullfile('materials', '*.csv'));
-material_found = false;
-
-for k = 1:length(csv_files)
-    fname = csv_files(k).name;
-    % Try to infer material from filename (case-insensitive, ignore spaces and dashes)
-    fname_clean = lower(regexprep(fname, '[\s\-_.]', ''));
-    material_clean = lower(regexprep(material, '[\s\-_.]', ''));
-    if contains(fname_clean, material_clean)
-        filename = fullfile('materials', fname);
-        material_found = true;
-        break;
-    end
-end
-
-if ~material_found
-    error(['Material file for "', material, '" not found in materials folder.']);
-end
-
-T = readtable(filename);
-wl_um = T.wl; % wavelength in microns
-n_vals = T.n;
-lambda_um = lambda * 1e6; % convert input wavelength to microns
-
-% Remove any non-finite or NaN values
-valid = isfinite(wl_um) & isfinite(n_vals);
-wl_um = wl_um(valid);
-n_vals = n_vals(valid);
-
-% Ensure sample points are unique for interp1
-[wl_um_unique, idx_unique] = unique(wl_um);
-n_vals_unique = n_vals(idx_unique);
-
-if isempty(wl_um_unique) || isempty(n_vals_unique)
-    error(['No valid data in file: ', filename]);
-end
-
-n = interp1(wl_um_unique, n_vals_unique, lambda_um, 'linear', 'extrap');
-disp(['Using refractive index for ', material, ' at ', num2str(lambda * 1e9), ' nm: ', num2str(n)]);
-end
