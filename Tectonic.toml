@@ -1,0 +1,8 @@
+[doc]
+name = "integrated-photonics"
+bundle = "https://data1.fullyjustified.net/tlextras-2022.0r0.tar"
+
+[[output]]
+name = "index"
+index = "index.tex"
+type = "pdf"
