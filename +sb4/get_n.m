@@ -48,5 +48,5 @@ if isempty(wl_um_unique) || isempty(n_vals_unique)
 end
 
 n = interp1(wl_um_unique, n_vals_unique, lambda_um, 'linear', 'extrap');
-disp(['Using refractive index for ', material, ' at ', num2str(lambda * 1e9), ' nm: ', num2str(n)]);
+% disp(['Using refractive index for ', material, ' at ', num2str(lambda * 1e9), ' nm: ', num2str(n)]);
 end
