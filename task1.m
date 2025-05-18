@@ -97,3 +97,124 @@ legend(arrayfun(@(x) sprintf('%.0f nm', x * 1e9), wavelengths, 'UniformOutput', 
 % The analysis shows that for a silicon-on-insulator waveguide, the number of supported modes
 % decreases as the wavelength increases, highlighting the importance of considering
 % wavelength in the design of photonic devices.
+
+
+% Consider the Si+SiO2 waveguide at 1550 nm.
+% For each mode (separately), calculate and plot the effective index as a function of core thickness, starting from where the mode theoretically exists
+% Finish continuously tracking each mode as it increases monotonically before you move on to the next mode.
+% This will involve calculating the effective index for each mode at various core thicknesses
+% Put all the code here, and use a loop to plot each mode on the same figure.
+% Define any additional functions you need for the calculations (e.g., dispersion equations, and a function to calculate the effective index).
+
+disp('Starting effective index calculation for Si/SiO2 waveguide at 1550 nm...');
+
+lambda_neff = 1550e-9; % Wavelength in meters
+n_core_neff = sb4.get_n('Si', lambda_neff);
+n_clad_neff = sb4.get_n('SiO2', lambda_neff);
+
+% Define a fine range of core thicknesses for plotting n_eff
+% Start from a small thickness to observe mode cutoffs
+thicknesses_plot_neff = linspace(10e-9, 2000e-9, 500); % 10 nm to 1000 nm, 200 points
+
+figure; % New figure for n_eff plots
+hold on;
+xlabel('Core Thickness (\mum)');
+ylabel('Effective Index (n_{eff})');
+title(['Effective Index vs. Core Thickness for Si/SiO2 Waveguide at ', num2str(lambda_neff*1e9), ' nm']);
+grid on;
+
+% Add horizontal lines for n_clad and n_core
+min_thick_um = min(thicknesses_plot_neff) * 1e6;
+max_thick_um = max(thicknesses_plot_neff) * 1e6;
+plot([min_thick_um max_thick_um], [n_clad_neff n_clad_neff], 'k:', 'LineWidth', 1, 'DisplayName', 'n_{SiO_2}');
+plot([min_thick_um max_thick_um], [n_core_neff n_core_neff], 'k--', 'LineWidth', 1, 'DisplayName', 'n_{Si}');
+
+% Get some distinct colors for plotting modes
+num_colors_needed = 10; % Default, adjust if many modes are expected
+plot_colors = lines(num_colors_needed);
+
+% Determine maximum mode order 'm' to consider for TE and TM polarizations
+% This is based on the thickest waveguide in our range
+max_modes_at_max_thickness = sb4.planar.find_num_modes(n_core_neff, n_clad_neff, max(thicknesses_plot_neff), lambda_neff);
+
+% Initialize max mode orders to -1 (meaning no modes of that type if count is 0 or array is malformed)
+max_m_TE_neff = -1;
+max_m_TM_neff = -1;
+
+if ~isempty(max_modes_at_max_thickness)
+    % Check for TE modes
+    if max_modes_at_max_thickness(1) > 0
+        max_m_TE_neff = max_modes_at_max_thickness(1) - 1; % Max mode order m for TE (0-indexed)
+    end
+
+    % Check for TM modes, ensuring the second element exists
+    if length(max_modes_at_max_thickness) > 1 && max_modes_at_max_thickness(2) > 0
+        max_m_TM_neff = max_modes_at_max_thickness(2) - 1; % Max mode order m for TM (0-indexed)
+    end
+end
+
+% --- TE Modes ---
+disp('Calculating and plotting TE modes effective indices...');
+for m = 0:max_m_TE_neff
+    current_neff_values_TE = NaN(1, length(thicknesses_plot_neff));
+
+    for i = 1:length(thicknesses_plot_neff)
+        d_core = thicknesses_plot_neff(i);
+        neff = sb4.planar.find_neff(n_core_neff, n_clad_neff, d_core, lambda_neff, 'TE', m);
+
+        if ~isnan(neff) && isreal(neff) && neff > n_clad_neff && neff < n_core_neff
+            if i > 1 && ~isnan(current_neff_values_TE(i-1)) && neff < (current_neff_values_TE(i-1) - 1e-5) % Tolerance for numerical noise
+                fprintf('Warning: TE mode %d at thickness %.3f nm, n_eff %.4f might violate monotonicity (prev_neff %.4f).\n', ...
+                    m, d_core*1e9, neff, current_neff_values_TE(i-1));
+            end
+            current_neff_values_TE(i) = neff;
+        end
+    end
+
+    valid_plot_points_TE = ~isnan(current_neff_values_TE) & current_neff_values_TE > n_clad_neff;
+    if any(valid_plot_points_TE)
+        first_valid_idx_TE = find(valid_plot_points_TE, 1, 'first');
+        plot(thicknesses_plot_neff(first_valid_idx_TE:end) * 1e6, ...
+            current_neff_values_TE(first_valid_idx_TE:end), ...
+            'Color', plot_colors(mod(m, num_colors_needed)+1,:), ...
+            'LineWidth', 1.5, ...
+            'DisplayName', sprintf('TE_%d', m));
+    end
+end
+
+% --- TM Modes ---
+disp('Calculating and plotting TM modes effective indices...');
+for m = 0:max_m_TM_neff
+    current_neff_values_TM = NaN(1, length(thicknesses_plot_neff));
+
+    for i = 1:length(thicknesses_plot_neff)
+        d_core = thicknesses_plot_neff(i);
+        neff = sb4.planar.find_neff(n_core_neff, n_clad_neff, d_core, lambda_neff, 'TM', m);
+
+        if ~isnan(neff) && isreal(neff) && neff > n_clad_neff && neff < n_core_neff
+            if i > 1 && ~isnan(current_neff_values_TM(i-1)) && neff < (current_neff_values_TM(i-1) - 1e-5)
+                fprintf('Warning: TM mode %d at thickness %.3f nm, n_eff %.4f might violate monotonicity (prev_neff %.4f).\n', ...
+                    m, d_core*1e9, neff, current_neff_values_TM(i-1));
+            end
+            current_neff_values_TM(i) = neff;
+        end
+    end
+
+    valid_plot_points_TM = ~isnan(current_neff_values_TM) & current_neff_values_TM > n_clad_neff;
+    if any(valid_plot_points_TM)
+        first_valid_idx_TM = find(valid_plot_points_TM, 1, 'first');
+        plot(thicknesses_plot_neff(first_valid_idx_TM:end) * 1e6, ...
+            current_neff_values_TM(first_valid_idx_TM:end), ...
+            '--', 'Color', plot_colors(mod(m, num_colors_needed)+1,:), ... % Dashed line for TM modes
+            'LineWidth', 1.5, ...
+            'DisplayName', sprintf('TM_%d', m));
+    end
+end
+
+% Finalize plot
+ylim([n_clad_neff - 0.05, n_core_neff + 0.05]); % Set y-axis limits for better visualization
+legend('show', 'Location', 'southeast'); % Display legend
+hold off;
+
+disp('Effective index plotting section complete.');
+
