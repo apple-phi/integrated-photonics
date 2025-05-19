@@ -87,40 +87,40 @@
 \maketitle
 
 \section{Task 1: Mode analysis of a symmetric planar waveguide (SPW)}
-This section details the analysis of symmetric planar waveguides (SPWs), focusing on silicon-on-insulator (SOI) platforms and comparisons with other material systems. All simulations and plotting were performed using MATLAB. The \texttt{sb4} MATLAB package, including functionalities for obtaining material refractive indices (\texttt{sb4.get\_n}) and for planar waveguide mode analysis (\texttt{sb4.planar.find\_num\_modes}, \texttt{sb4.planar.find\_neff}), was implemented as part of this work.
+This section details the analysis of symmetric planar waveguides (SPWs), focusing on silicon-on-insulator (SOI) platforms and comparisons with other material systems. All simulations and plotting were performed using MATLAB. I implemented a helper MATLAB package called \texttt{sb4} to include functionalities for obtaining material refractive indices (\texttt{sb4.get\_n}) and for planar waveguide mode analysis (\texttt{sb4.planar.find\_num\_modes}, \texttt{sb4.planar.find\_neff}).
 
 \subsection{Silicon-on-Insulator (SOI) waveguide}
 The SOI platform, consisting of a silicon (Si) core and silicon dioxide (SiO$_2$) cladding, is a prevalent choice for integrated photonics due to its high index contrast and compatibility with CMOS manufacturing.
 
 \paragraph{Initial Mode Check at 300 nm Core}
-A symmetric SOI planar waveguide with a core thickness of 300~nm, operating at a wavelength ($\lambda$) of 1550~nm, was first analyzed. The refractive index of Si ($n_{\text{Si}}$) and SiO$_2$ ($n_{\text{SiO}_2}$) at this wavelength were determined. The analysis indicated that this waveguide supports a specific number of modes (typically 2 TE and 2 TM modes, i.e., TE$_0$, TM$_0$, TE$_1$, TM$_1$, depending on the exact refractive indices used by \texttt{sb4.get\_n}). For instance, if \texttt{sb4.planar.find\_num\_modes} returned 2 for the first element, it means TE$_0$ and TE$_1$ are supported.
+A symmetric SOI planar waveguide with a core thickness of 300~nm, operating at a wavelength ($\lambda$) of 1550~nm, was first analyzed. The refractive index of Si ($n_{\text{Si}}$) and SiO$_2$ ($n_{\text{SiO}_2}$) at this wavelength were determined. The analysis indicated that this waveguide supports a specific number of modes (typically 2 TE and 2 TM modes, i.e., TE$_0$, TM$_0$, TE$_1$, TM$_1$, depending on the exact refractive indices used by \texttt{sb4.get\_n}). Since \texttt{sb4.planar.find\_num\_modes} returned 2 for the first element, TE$_0$ and TE$_1$ should be supported.
 
 \paragraph{Mode Count vs. Core Thickness}
 The number of supported modes was investigated as a function of the Si core thickness, swept from 200~nm to 1~{\textmu}m, at $\lambda = 1550$~nm. As shown in Figure~\ref{fig:modes_vs_thickness_SOI_1550nm}, the number of supported modes increases with core thickness. This is expected, as a thicker core allows for more spatial variations of the electromagnetic field, accommodating higher-order modes.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.75\textwidth]{task1/modes_vs_thickness_SOI_1550nm.png}
+    \includegraphics[width=0.8\textwidth]{task1/modes_vs_thickness_SOI_1550nm.png}
     \caption{Number of supported modes as a function of core thickness for an SOI waveguide at $\lambda = 1550$~nm.}
     \label{fig:modes_vs_thickness_SOI_1550nm}
 \end{figure}
 
 \paragraph{Mode Count vs. Wavelength}
-The analysis was repeated for various operating wavelengths (850~nm, 1310~nm, 1550~nm, 1600~nm, 2000~nm), considering material dispersion. Figure~\ref{fig:modes_vs_thickness_SOI_wavelengths} illustrates that for a fixed core thickness, the number of supported modes generally decreases with increasing wavelength. This is because the mode confinement weakens at longer wavelengths relative to the waveguide dimensions, and the effective index contrast often reduces.
+The analysis was repeated for various operating wavelengths (850~nm, 1310~nm, 1550~nm, 1600~nm, 2000~nm), considering material dispersion. Figure~\ref{fig:modes_vs_thickness_SOI_wavelengths} illustrates that for a fixed core thickness, the number of supported modes generally decreases with increasing wavelength. This is because the mode confinement weakens at longer wavelengths relative to the waveguide dimensions, and the effective index contrast reduces.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.75\textwidth]{task1/modes_vs_thickness_SOI_wavelengths.png}
+    \includegraphics[width=0.8\textwidth]{task1/modes_vs_thickness_SOI_wavelengths.png}
     \caption{Number of supported modes vs. core thickness for an SOI waveguide at different operating wavelengths.}
     \label{fig:modes_vs_thickness_SOI_wavelengths}
 \end{figure}
 
 \paragraph{Effective Index Dispersion}
-The effective refractive index ($n_{\text{eff}}$) of TE and TM modes was calculated as a function of core thickness (10~nm to 2~{\textmu}m) for an SOI waveguide at $\lambda = 1550$~nm. Figure~\ref{fig:neff_vs_thickness_Si_SiO2_1550nm} shows these dispersion curves. For each mode, $n_{\text{eff}}$ starts near $n_{\text{SiO}_2}$ at its cutoff thickness and increases towards $n_{\text{Si}}$ as the core thickness grows. Higher-order modes appear at progressively larger core thicknesses. The solver's ability to precisely match theoretical cutoffs can be challenging where $dn_{\text{eff}}/d(\text{thickness})$ is small.
+The effective refractive index ($n_{\text{eff}}$) of TE and TM modes was calculated as a function of core thickness (10~nm to 2~{\textmu}m) for an SOI waveguide at $\lambda = 1550$~nm. Figure~\ref{fig:neff_vs_thickness_Si_SiO2_1550nm} shows these dispersion curves. For each mode, $n_{\text{eff}}$ starts near $n_{\text{SiO}_2}$ at its cutoff thickness and increases towards $n_{\text{Si}}$ as the core thickness grows. Higher-order modes appear at progressively larger core thicknesses. The solver's ability to precisely match theoretical cutoffs can be challenging where $dn_{\text{eff}}/d(\text{thickness})$ is small, which is why the modes on this plot appear slightly later than the theoremtical critical thicknesses.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.75\textwidth]{task1/neff_vs_thickness_Si_SiO2_1550nm.png}
+    \includegraphics[width=0.8\textwidth]{task1/neff_vs_thickness_Si_SiO2_1550nm.png}
     \caption{Effective index ($n_{\text{eff}}$) vs. core thickness for TE and TM modes in an Si/SiO$_2$ waveguide at $\lambda = 1550$~nm. Horizontal lines indicate $n_{\text{Si}}$ and $n_{\text{SiO}_2}$.}
     \label{fig:neff_vs_thickness_Si_SiO2_1550nm}
 \end{figure}
@@ -130,7 +130,7 @@ The theoretical critical core thickness ($d_c$) required to support a mode of or
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.75\textwidth]{task1/critical_thickness_vs_wavelength.png}
+    \includegraphics[width=0.8\textwidth]{task1/critical_thickness_vs_wavelength.png}
     \caption{Critical core thickness vs. wavelength for different mode orders ($m$) in an Si/SiO$_2$ waveguide.}
     \label{fig:critical_thickness_vs_wavelength}
 \end{figure}
@@ -140,7 +140,7 @@ The group index ($n_g = n_{\text{eff}} - \lambda \frac{dn_{\text{eff}}}{d\lambda
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.75\textwidth]{task1/group_index_TE0_TM0_vs_wavelength_d300nm.png}
+    \includegraphics[width=0.8\textwidth]{task1/group_index_TE0_TM0_vs_wavelength_d300nm.png}
     \caption{Group index ($n_g$) vs. wavelength for TE$_0$ and TM$_0$ modes in an Si/SiO$_2$ waveguide with a 300~nm core thickness.}
     \label{fig:group_index_TE0_TM0_vs_wavelength}
 \end{figure}
@@ -153,7 +153,7 @@ Figure~\ref{fig:modes_vs_thickness_materials_1550nm} compares the number of supp
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.75\textwidth]{task1/modes_vs_thickness_materials_1550nm.png}
+    \includegraphics[width=0.8\textwidth]{task1/modes_vs_thickness_materials_1550nm.png}
     \caption{Number of supported modes vs. core thickness for different core materials (Si, Si$_3$N$_4$, LiNbO$_3$, GaAs) with SiO$_2$ cladding at $\lambda = 1550$~nm.}
     \label{fig:modes_vs_thickness_materials_1550nm}
 \end{figure}
@@ -163,7 +163,7 @@ The critical core thickness for the onset of multimode operation (i.e., cutoff o
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.75\textwidth]{task1/critical_thickness_multimode_vs_wavelength_materials.png}
+    \includegraphics[width=0.8\textwidth]{task1/critical_thickness_multimode_vs_wavelength_materials.png}
     \caption{Critical core thickness for multimode operation ($m=1$ mode cutoff) vs. wavelength for different core materials with SiO$_2$ cladding.}
     \label{fig:critical_thickness_multimode_vs_wavelength_materials}
 \end{figure}
@@ -173,7 +173,7 @@ Waveguide birefringence, $\Delta n = n_{\text{eff,TE}_0} - n_{\text{eff,TM}_0}$,
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.75\textwidth]{task1/birefringence_vs_thickness_materials_1550nm.png}
+    \includegraphics[width=0.8\textwidth]{task1/birefringence_vs_thickness_materials_1550nm.png}
     \caption{Birefringence ($n_{\text{eff,TE}_0} - n_{\text{eff,TM}_0}$) vs. core thickness for different core materials with SiO$_2$ cladding at $\lambda = 1550$~nm.}
     \label{fig:birefringence_vs_thickness_materials_1550nm}
 \end{figure}

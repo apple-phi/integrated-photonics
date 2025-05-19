@@ -9,6 +9,9 @@ if ~exist(output_dir, 'dir')
     mkdir(output_dir);
 end
 
+% Define default line width for all plots
+defaultLineWidth = 2; % Increased line width
+
 lambda = 1550e-9; % wavelength in meters
 n_Si = sb4.get_n('Si', lambda);
 n_SiO2 = sb4.get_n('SiO2', lambda);
@@ -26,13 +29,13 @@ thicknesses = 200e-9:100e-9:1e-6; % core thicknesses from 200 nm to 1 μm
 num_modes_Si = sb4.planar.find_num_modes(n_Si, n_SiO2, thicknesses, lambda);
 
 figure;
-plot(thicknesses * 1e6, num_modes_Si, '-o');
-ax = gca; ax.FontSize = 12; % Base font size for ticks
-xlabel('Core Thickness (μm)', 'FontSize', 14);
-ylabel('Number of Supported Modes', 'FontSize', 14);
-title('Supported Modes vs Core Thickness for SOI Waveguide at 1550 nm', 'FontSize', 16);
+plot(thicknesses * 1e6, num_modes_Si, '-o', 'LineWidth', defaultLineWidth);
+ax = gca; ax.FontSize = 16; % Base font size for ticks
+xlabel('Core Thickness (μm)', 'FontSize', 18);
+ylabel('Number of Supported Modes', 'FontSize', 18);
+title('Supported Modes vs Core Thickness for SOI Waveguide at 1550 nm', 'FontSize', 20);
 grid on;
-legend('1550 nm', 'FontSize', 12);
+legend('1550 nm', 'FontSize', 16);
 saveas(gcf, fullfile(output_dir, 'modes_vs_thickness_SOI_1550nm.png'));
 
 % Repeat the above analysis using different waveguide core materials (e.g.,
@@ -49,16 +52,18 @@ num_modes_SiN = sb4.planar.find_num_modes(n_SiN, n_SiO2, thicknesses, lambda);
 num_modes_LiNbO3 = sb4.planar.find_num_modes(n_LiNbO3, n_SiO2, thicknesses, lambda);
 num_modes_GaAs = sb4.planar.find_num_modes(n_GaAs, n_SiO2, thicknesses, lambda);
 figure;
-plot(thicknesses * 1e6, num_modes_Si, '-o', ...
-    thicknesses * 1e6, num_modes_SiN, '-o', ...
-    thicknesses * 1e6, num_modes_LiNbO3, '-x', ...
-    thicknesses * 1e6, num_modes_GaAs, '-s');
-ax = gca; ax.FontSize = 12;
-xlabel('Core Thickness (μm)', 'FontSize', 14);
-ylabel('Number of Supported Modes', 'FontSize', 14);
-title('Supported Modes vs Core Thickness for Different Materials at 1550 nm', 'FontSize', 16);
+plot(thicknesses * 1e6, num_modes_Si, '-o', 'LineWidth', defaultLineWidth);
+hold on; % Ensure subsequent plots are on the same axes
+plot(thicknesses * 1e6, num_modes_SiN, '-o', 'LineWidth', defaultLineWidth);
+plot(thicknesses * 1e6, num_modes_LiNbO3, '-x', 'LineWidth', defaultLineWidth);
+plot(thicknesses * 1e6, num_modes_GaAs, '-s', 'LineWidth', defaultLineWidth);
+hold off;
+ax = gca; ax.FontSize = 16;
+xlabel('Core Thickness (μm)', 'FontSize', 18);
+ylabel('Number of Supported Modes', 'FontSize', 18);
+title('Supported Modes vs Core Thickness for Different Materials at 1550 nm', 'FontSize', 20);
 grid on;
-legend('Si', 'Si3N4', 'LiNbO3', 'GaAs', 'FontSize', 12, 'Location', 'best');
+legend('Si', 'Si3N4', 'LiNbO3', 'GaAs', 'FontSize', 16, 'Location', 'best');
 saveas(gcf, fullfile(output_dir, 'modes_vs_thickness_materials_1550nm.png'));
 % The analysis shows that silicon nitride supports more modes than silicon
 % at the same core thickness, while lithium niobate supports fewer modes.
@@ -88,13 +93,18 @@ for j = 1:length(wavelengths)
     num_modes_all(:, j) = sb4.planar.find_num_modes(n_Si_loop, n_SiO2_loop, thicknesses, lambda_loop);
 end
 figure;
-plot(thicknesses * 1e6, num_modes_all, '-o');
-ax = gca; ax.FontSize = 12;
-xlabel('Core Thickness (μm)', 'FontSize', 14);
-ylabel('Number of Supported Modes', 'FontSize', 14);
-title('Supported Modes vs Core Thickness for SOI Waveguide at Different Wavelengths', 'FontSize', 16);
+% Plot each line separately to control LineWidth for all
+hold on;
+for j = 1:length(wavelengths)
+    plot(thicknesses * 1e6, num_modes_all(:,j), '-o', 'LineWidth', defaultLineWidth, 'DisplayName', sprintf('%.0f nm', wavelengths(j) * 1e9));
+end
+hold off;
+ax = gca; ax.FontSize = 16;
+xlabel('Core Thickness (μm)', 'FontSize', 18);
+ylabel('Number of Supported Modes', 'FontSize', 18);
+title('Supported Modes vs Core Thickness for SOI Waveguide at Different Wavelengths', 'FontSize', 20);
 grid on;
-legend(arrayfun(@(x) sprintf('%.0f nm', x * 1e9), wavelengths, 'UniformOutput', false), 'FontSize', 12, 'Location', 'best');
+legend(arrayfun(@(x) sprintf('%.0f nm', x * 1e9), wavelengths, 'UniformOutput', false), 'FontSize', 16, 'Location', 'best');
 saveas(gcf, fullfile(output_dir, 'modes_vs_thickness_SOI_wavelengths.png'));
 
 
@@ -131,17 +141,17 @@ thicknesses_plot_neff = linspace(10e-9, 2000e-9, 500); % 10 nm to 1000 nm, 200 p
 
 figure; % New figure for n_eff plots
 hold on;
-ax_neff = gca; ax_neff.FontSize = 12;
-xlabel('Core Thickness (\mum)', 'FontSize', 14);
-ylabel('Effective Index (n_{eff})', 'FontSize', 14);
-title(['Effective Index vs. Core Thickness for Si/SiO2 Waveguide at ', num2str(lambda_neff*1e9), ' nm'], 'FontSize', 16);
+ax_neff = gca; ax_neff.FontSize = 16;
+xlabel('Core Thickness (\mum)', 'FontSize', 18);
+ylabel('Effective Index (n_{eff})', 'FontSize', 18);
+title(['Effective Index vs. Core Thickness for Si/SiO2 Waveguide at ', num2str(lambda_neff*1e9), ' nm'], 'FontSize', 20);
 grid on;
 
 % Add horizontal lines for n_clad and n_core
 min_thick_um = min(thicknesses_plot_neff) * 1e6;
 max_thick_um = max(thicknesses_plot_neff) * 1e6;
-plot([min_thick_um max_thick_um], [n_clad_neff n_clad_neff], 'k:', 'LineWidth', 1, 'DisplayName', 'n_{SiO_2}');
-plot([min_thick_um max_thick_um], [n_core_neff n_core_neff], 'k--', 'LineWidth', 1, 'DisplayName', 'n_{Si}');
+plot([min_thick_um max_thick_um], [n_clad_neff n_clad_neff], 'k:', 'LineWidth', defaultLineWidth, 'DisplayName', 'n_{SiO_2}');
+plot([min_thick_um max_thick_um], [n_core_neff n_core_neff], 'k--', 'LineWidth', defaultLineWidth, 'DisplayName', 'n_{Si}');
 
 % Get some distinct colors for plotting modes
 num_colors_needed = 10; % Default, adjust if many modes are expected
@@ -191,7 +201,7 @@ for m = 0:max_m_TE_neff
         plot(thicknesses_plot_neff(first_valid_idx_TE:end) * 1e6, ...
             current_neff_values_TE(first_valid_idx_TE:end), ...
             'Color', plot_colors(mod(m, num_colors_needed)+1,:), ...
-            'LineWidth', 1.5, ...
+            'LineWidth', defaultLineWidth, ...
             'DisplayName', sprintf('TE_%d', m));
     end
 end
@@ -220,14 +230,14 @@ for m = 0:max_m_TM_neff
         plot(thicknesses_plot_neff(first_valid_idx_TM:end) * 1e6, ...
             current_neff_values_TM(first_valid_idx_TM:end), ...
             '--', 'Color', plot_colors(mod(m, num_colors_needed)+1,:), ... % Dashed line for TM modes
-            'LineWidth', 1.5, ...
+            'LineWidth', defaultLineWidth, ...
             'DisplayName', sprintf('TM_%d', m));
     end
 end
 
 % Finalize plot
 ylim([n_clad_neff - 0.05, n_core_neff + 0.05]); % Set y-axis limits for better visualization
-legend('show', 'Location', 'southeast', 'FontSize', 12); % Display legend
+legend('show', 'Location', 'southeast', 'FontSize', 16); % Display legend
 hold off;
 saveas(gcf, fullfile(output_dir, 'neff_vs_thickness_Si_SiO2_1550nm.png'));
 
@@ -279,23 +289,23 @@ end
 
 figure;
 hold on;
-ax_crit_thick_modes = gca; ax_crit_thick_modes.FontSize = 12;
+ax_crit_thick_modes = gca; ax_crit_thick_modes.FontSize = 16;
 plot_colors_critical = lines(length(m_values)); % Get distinct colors
 
 for i = 1:length(m_values)
-    m = m_values(i);
+    m_loop = m_values(i); % Renamed m to m_loop to avoid conflict
     plot(plot_wavelengths * 1e9, critical_thicknesses_all_modes(i, :) * 1e9, ...
         'Color', plot_colors_critical(i,:), ...
-        'LineWidth', 1.5, ...
-        'DisplayName', sprintf('m = %d (TE_{%d}/TM_{%d})', m, m, m));
+        'LineWidth', defaultLineWidth, ...
+        'DisplayName', sprintf('m = %d (TE_{%d}/TM_{%d})', m_loop, m_loop, m_loop));
 end
 
-xlabel('Wavelength (nm)', 'FontSize', 14);
-ylabel('Critical Core Thickness (nm)', 'FontSize', 14);
-title('Critical Thickness vs. Wavelength for Si/SiO_2 Waveguide', 'FontSize', 16);
+xlabel('Wavelength (nm)', 'FontSize', 18);
+ylabel('Critical Core Thickness (nm)', 'FontSize', 18);
+title('Critical Thickness vs. Wavelength for Si/SiO_2 Waveguide', 'FontSize', 20);
 grid on;
-legend('show', 'Location', 'northwest', 'FontSize', 12);
-ylim([0, max(critical_thicknesses_all_modes(:), [], 'omitnan') * 1e9 * 1.1 + 10]); % Adjust y-limit for better view, add 10nm buffer
+legend('show', 'Location', 'northwest', 'FontSize', 16);
+ylim([0, max(critical_thicknesses_all_modes(:), [], 'omitnan') * 1e9 * 1.1]); % Adjust y-limit for better view, add 10nm buffer
 hold off;
 saveas(gcf, fullfile(output_dir, 'critical_thickness_vs_wavelength.png'));
 
@@ -334,7 +344,7 @@ end
 
 figure;
 hold on;
-ax_crit_thick_mat = gca; ax_crit_thick_mat.FontSize = 12;
+ax_crit_thick_mat = gca; ax_crit_thick_mat.FontSize = 16;
 plot_colors_multimode_materials = lines(length(core_materials)); % Get distinct colors
 
 for k = 1:length(core_materials)
@@ -345,16 +355,16 @@ for k = 1:length(core_materials)
     end
 
     plot(plot_wavelengths * 1e9, critical_thickness_multimode_materials(k, :) * 1e9, ...
-         'Color', plot_colors_multimode_materials(k,:), ...
-         'LineWidth', 1.5, ...
-         'DisplayName', display_name_formatted);
+        'Color', plot_colors_multimode_materials(k,:), ...
+        'LineWidth', defaultLineWidth, ...
+        'DisplayName', display_name_formatted);
 end
 
-xlabel('Wavelength (nm)', 'FontSize', 14);
-ylabel('Critical Thickness for Multimode (m=1) (nm)', 'FontSize', 14);
-title('Critical Thickness for Multimode Operation vs. Wavelength (SiO_2 Cladding)', 'FontSize', 16);
+xlabel('Wavelength (nm)', 'FontSize', 18);
+ylabel('Critical Thickness for Multimode (m=1) (nm)', 'FontSize', 18);
+title('Critical Thickness for Multimode Operation vs. Wavelength (SiO_2 Cladding)', 'FontSize', 20);
 grid on;
-legend('show', 'Location', 'northwest', 'Interpreter', 'tex', 'FontSize', 12);
+legend('show', 'Location', 'northwest', 'Interpreter', 'tex', 'FontSize', 16);
 % Adjust y-limit dynamically, ensuring non-negative lower bound
 min_y_val = 0;
 max_y_val = max(critical_thickness_multimode_materials(:), [], 'omitnan') * 1e9 * 1.1;
@@ -390,14 +400,14 @@ end
 
 figure; % Create a new figure for group index plots
 hold on; % Hold on to plot multiple lines
-ax_ng = gca; ax_ng.FontSize = 12;
+ax_ng = gca; ax_ng.FontSize = 16;
 
 % Calculate and plot for TE0
 valid_ng_indices_TE0 = ~isnan(neff_for_ng_TE0);
 if sum(valid_ng_indices_TE0) > 1 % Need at least 2 points for diff
     d_neff_d_lambda_TE0 = gradient(neff_for_ng_TE0(valid_ng_indices_TE0), ng_wavelengths(valid_ng_indices_TE0));
     group_index_TE0 = neff_for_ng_TE0(valid_ng_indices_TE0) - ng_wavelengths(valid_ng_indices_TE0) .* d_neff_d_lambda_TE0;
-    plot(ng_wavelengths(valid_ng_indices_TE0) * 1e9, group_index_TE0, 'LineWidth', 1.5, 'DisplayName', 'TE_0');
+    plot(ng_wavelengths(valid_ng_indices_TE0) * 1e9, group_index_TE0, 'LineWidth', defaultLineWidth, 'DisplayName', 'TE_0');
 else
     disp('Not enough valid n_eff points to calculate group index for TE0.');
 end
@@ -407,17 +417,17 @@ valid_ng_indices_TM0 = ~isnan(neff_for_ng_TM0);
 if sum(valid_ng_indices_TM0) > 1 % Need at least 2 points for diff
     d_neff_d_lambda_TM0 = gradient(neff_for_ng_TM0(valid_ng_indices_TM0), ng_wavelengths(valid_ng_indices_TM0));
     group_index_TM0 = neff_for_ng_TM0(valid_ng_indices_TM0) - ng_wavelengths(valid_ng_indices_TM0) .* d_neff_d_lambda_TM0;
-    plot(ng_wavelengths(valid_ng_indices_TM0) * 1e9, group_index_TM0, '--', 'LineWidth', 1.5, 'DisplayName', 'TM_0'); % Dashed line for TM0
+    plot(ng_wavelengths(valid_ng_indices_TM0) * 1e9, group_index_TM0, '--', 'LineWidth', defaultLineWidth, 'DisplayName', 'TM_0'); % Dashed line for TM0
 else
     disp('Not enough valid n_eff points to calculate group index for TM0.');
 end
 
 if sum(valid_ng_indices_TE0) > 1 || sum(valid_ng_indices_TM0) > 1
-    xlabel('Wavelength (nm)', 'FontSize', 14);
-    ylabel('Group Index (n_g)', 'FontSize', 14);
-    title(sprintf('Group Index vs. Wavelength (Si/SiO_2, Core Thickness = %.0f nm)', fixed_core_thickness_ng*1e9), 'FontSize', 16);
+    xlabel('Wavelength (nm)', 'FontSize', 18);
+    ylabel('Group Index (n_g)', 'FontSize', 18);
+    title(sprintf('Group Index vs. Wavelength (Si/SiO_2, Core Thickness = %.0f nm)', fixed_core_thickness_ng*1e9), 'FontSize', 20);
     grid on;
-    legend('show', 'Location', 'best', 'FontSize', 12);
+    legend('show', 'Location', 'best', 'FontSize', 16);
     saveas(gcf, fullfile(output_dir, sprintf('group_index_TE0_TM0_vs_wavelength_d%.0fnm.png', fixed_core_thickness_ng*1e9)));
 end
 hold off;
@@ -433,13 +443,13 @@ biref_lambda = 1550e-9; % Fixed wavelength
 
 figure; % Create a new figure for birefringence plots
 hold on; % Hold on to plot multiple lines
-ax_biref = gca; ax_biref.FontSize = 12;
+ax_biref = gca; ax_biref.FontSize = 16;
 plot_colors_biref_materials = lines(length(core_materials));
 
 for k_mat = 1:length(core_materials)
     current_core_mat_name = core_materials{k_mat};
     current_display_name = material_display_names{k_mat};
-    
+
     neff_TE0_biref = NaN(1, length(thicknesses_plot_neff));
     neff_TM0_biref = NaN(1, length(thicknesses_plot_neff));
 
@@ -464,7 +474,7 @@ for k_mat = 1:length(core_materials)
             end
 
             plot(thicknesses_plot_neff(valid_biref_indices) * 1e6, birefringence(valid_biref_indices), ...
-                'LineWidth', 1.5, 'Color', plot_colors_biref_materials(k_mat,:), ...
+                'LineWidth', defaultLineWidth, 'Color', plot_colors_biref_materials(k_mat,:), ...
                 'DisplayName', display_name_formatted);
         else
             fprintf('Not enough valid n_eff points to calculate birefringence for %s.\n', current_core_mat_name);
@@ -475,11 +485,11 @@ for k_mat = 1:length(core_materials)
 end
 
 if ishghandle(gcf) && ~isempty(get(gca, 'Children')) % Check if anything was plotted
-    xlabel('Core Thickness (\mum)', 'FontSize', 14);
-    ylabel('Birefringence (n_{eff,TE0} - n_{eff,TM0})', 'FontSize', 14);
-    title(sprintf('Birefringence vs. Core Thickness at %.0f nm (SiO_2 Cladding)', biref_lambda*1e9), 'FontSize', 16);
+    xlabel('Core Thickness (\mum)', 'FontSize', 18);
+    ylabel('Birefringence (n_{eff,TE0} - n_{eff,TM0})', 'FontSize', 18);
+    title(sprintf('Birefringence vs. Core Thickness at %.0f nm (SiO_2 Cladding)', biref_lambda*1e9), 'FontSize', 20);
     grid on;
-    legend('show', 'Location', 'best', 'Interpreter', 'tex', 'FontSize', 12);
+    legend('show', 'Location', 'best', 'Interpreter', 'tex', 'FontSize', 16);
     saveas(gcf, fullfile(output_dir, 'birefringence_vs_thickness_materials_1550nm.png'));
 end
 hold off;
