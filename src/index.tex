@@ -92,6 +92,8 @@ This section details the analysis of symmetric planar waveguides (SPWs), focusin
 \subsection{Silicon-on-Insulator (SOI) waveguide}
 The SOI platform, consisting of a silicon (Si) core and silicon dioxide (SiO$_2$) cladding, is a prevalent choice for integrated photonics due to its high index contrast and compatibility with CMOS manufacturing.
 
+We will assume perfect manufacturing and waveguide geometry and no material absorption or surface roughness for the purposes of this analysis. 
+
 \paragraph{Initial Mode Check at 300 nm Core}
 A symmetric SOI planar waveguide with a core thickness of 300~nm, operating at a wavelength ($\lambda$) of 1550~nm, was first analyzed. The refractive index of Si ($n_{\text{Si}}$) and SiO$_2$ ($n_{\text{SiO}_2}$) at this wavelength were determined. Since \texttt{sb4.planar.find\_num\_modes} returned 2 for the first element, TE$_0$ and TE$_1$ should be supported (and hence TM$_0$ and TM$_1$ also).
 
