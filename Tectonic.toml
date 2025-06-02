@@ -6,3 +6,8 @@ bundle = "https://data1.fullyjustified.net/tlextras-2022.0r0.tar"
 name = "index"
 index = "index.tex"
 type = "pdf"
+
+[[output]]
+name = "task2"
+index = "task2.tex"
+type = "pdf"

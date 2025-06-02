@@ -1,0 +1,317 @@
+\documentclass[10pt, a4paper]{article}
+
+% \usepackage[mathdisplays=normal]{savetrees}
+
+% Core packages for better typography
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{lmodern}
+\usepackage{setspace}
+% \onehalfspacing
+
+% Math packages with better formatting
+\usepackage{latexsym,amsfonts,amssymb,amsthm,amsmath}
+\usepackage{mathtools}
+
+% Graphics and figures
+\usepackage{tikz}
+\usetikzlibrary{angles,quotes}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usepackage{graphicx}
+\graphicspath{{../data/}}
+
+% Better table formatting
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% Force figures to stay in their sections
+\usepackage[section]{placeins}
+\makeatletter
+\AtBeginDocument{%
+  \expandafter\renewcommand\expandafter\subsection\expandafter{%
+    \expandafter\@fb@secFB\subsection
+  }%
+}
+\makeatother
+
+% Code listing formatting
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},   
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{blue},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+\lstset{style=mystyle}
+
+% References and hyperlinks
+\usepackage{pdfpages}
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue]{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{csquotes}
+\usepackage[notes, backend=bibtex]{biblatex-chicago}
+\addbibresource{refs.bib}
+
+% Custom theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}{Example}[section]
+
+\title{\Large \bfseries SB4: Integrated Photonics\\[0.5em] \large Interim Report 2}
+\author{Lucas Ng\thanks{ln373@cam.ac.uk}}
+\date{1st June 2025}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+At the heart of many photonic integrated circuits lies the principle of optical coupling: optical power exchange between adjacent waveguides or resonant structures. Coupled-mode theory provides a powerful and intuitive framework for analyzing and designing such coupled systems. It verifies power conservation under ideal coupling and enables calculation of critical device parameters such as the minimum length required for 3dB power splitting or for achieving maximum power transfer.
+In practice, directional couplers with different transfer matrices designed under this theory can be cascaded to form complex integrated photonic circuits that act as filters,
+Mach-Zehnder interferometers, and other devices\autocite{liMultimodeSiliconPhotonics2019}.
+
+\section{Coupled-mode theory}
+The coupled-mode equations are a set of simultaneous differential equations that describe the interaction between two or more modes in a waveguide or resonator system:
+
+\begin{equation}
+\frac{\mathrm{d}}{\mathrm{d}z}
+\begin{pmatrix}
+A_1\\
+A_2
+\end{pmatrix}
+=
+-j
+\underbrace{
+\begin{bmatrix}
+\beta & \kappa \\
+\kappa & \beta
+\end{bmatrix}}_{M}
+\begin{pmatrix}
+A_1 \\
+A_2
+\end{pmatrix}.
+\end{equation}
+These are derived from Maxwell's equations and are used to model the transfer of energy between modes due to coupling effects.
+We will assume that each waveguide has identical $\beta$ and $\kappa$ (i.e., no fabrication variations),
+and that both are purely real (i.e., no material absorption, dispersion or waveguide bending losses).
+These assumptions will lead to overly optimistic coupling-lengths.
+
+Let the coupling matrix be $M$.
+Then, via the integrating factor method, we have the general solution:
+\begin{equation}
+\begin{pmatrix}
+A_1(z)\\
+A_2(z)
+\end{pmatrix}
+=e^{-jzM}
+\begin{pmatrix}
+A_1(0)\\
+A_2(0)
+\end{pmatrix}.
+\end{equation}
+
+Under the differential geometry of the state space,
+$-jzM$ can be thought of as an element of the Lie algebra $\mathfrak{gl}(2,\mathbb{C})$.
+The matrix exponential $e^{-jzM}$ is then the exponential map to the Lie group $GL(2,\mathbb{C})$, forming a one-parameter group of diffeomorphisms.
+
+\paragraph{Exponentiating the coupling matrix} We wish to obtain the matrix exponential $e^{-jzM}$.
+A quick approach is to decompose $Q=-jzM$ into diagonal form.
+Let $Q = PDP^{-1}$, where $D$ is a diagonal matrix with the eigenvalues of $Q$ on the diagonal, and $P$ is the matrix of eigenvectors.
+Then we have
+\begin{equation}
+    e^{-jzM} = Pe^{-jzD}P^{-1},
+\end{equation}
+where $e^{D}$ is simply the diagonal matrix with the exponentials of the diagonal elements of $D$.
+In this case, the eigenvalues of $Q$ are $-jz(\beta \pm \kappa)$, and the eigenvectors can be computed as:
+
+\begin{equation}
+P = \begin{bmatrix}
+1 & 1 \\
+1 & -1
+\end{bmatrix}.
+\end{equation}
+Normalisation is not necessary here since we are only interested in the matrix exponential, which is invariant under scaling of the eigenvectors.
+
+Thus the matrix exponential can be computed as:
+\begin{align}
+e^{-jzM} &= \begin{bmatrix}
+1 & 1 \\
+1 & -1
+\end{bmatrix}
+\begin{bmatrix}
+e^{-jz(\beta + \kappa)} & 0 \\
+0 & e^{-jz(\beta - \kappa)}
+\end{bmatrix}
+\begin{bmatrix}1 & 1 \\
+1 & -1\end{bmatrix}^{-1}\\
+&=
+e^{-jz\beta}
+\begin{bmatrix}
+\frac{e^{jz\kappa} + e^{-jz\kappa}}{2} & \frac{e^{jz\kappa} - e^{-jz\kappa}}{2} \\
+\frac{e^{jz\kappa} - e^{-jz\kappa}}{2} & \frac{e^{jz\kappa} + e^{-jz\kappa}}{2}
+\end{bmatrix}
+\\
+&=e^{-jz\beta}
+\begin{bmatrix}
+\cos(z\kappa) & -j\sin(z\kappa) \\
+-j\sin(z\kappa) & \cos(z\kappa)
+\end{bmatrix}.
+\end{align}
+
+\paragraph{The closed-form solution} We now have the matrix exponential, and we can write the closed-form solution for the coupled-mode equations:
+\begin{align}
+\begin{pmatrix}
+A_1(z)\\
+A_2(z)
+\end{pmatrix}
+&=
+e^{-jz\beta}
+\begin{bmatrix}
+\cos(z\kappa) & -j\sin(z\kappa) \\
+-j\sin(z\kappa) & \cos(z\kappa)
+\end{bmatrix}
+\begin{pmatrix}
+A_1(0)\\
+A_2(0)
+\end{pmatrix}\\
+&=
+e^{-jz\beta} \begin{pmatrix}
+A_1(0)\cos(z\kappa) - jA_2(0)\sin(z\kappa) \\
+-jA_1(0)\sin(z\kappa) + A_2(0)\cos(z\kappa)
+\end{pmatrix}.
+\end{align}
+The closed-form solution shows that the amplitudes of the modes oscillate with a frequency determined by the coupling strength $\kappa$ and the propagation constant $\beta$.
+
+\paragraph{Mathematical Interpretation} The exponential map $e^{-jzM}$ governs the evolution of the mode amplitudes.
+We can express $M = \beta I + \kappa \sigma_x$,
+where $I$ is the identity matrix and $\sigma_x = \begin{bsmallmatrix} 0 & 1 \\ 1 & 0 \end{bsmallmatrix}$ is a Pauli matrix.
+Thus, $e^{-jzM} = e^{-jz\beta I} e^{-jz\kappa \sigma_x}$. The term $e^{-jz\kappa \sigma_x}$ is a unitary matrix: $e^{-jz\kappa \sigma_x} \in SU(2)$.
+This unitarity is crucial as it ensures the conservation of total optical power throughout the propagation:
+
+\[|A_1(z)|^2 + |A_2(z)|^2 = \text{constant}.\]
+
+This mathematical structure is characteristic of two-level coupled systems, with direct analogies in quantum mechanics, such as the Rabi oscillations of a two-level atom interacting with an electromagnetic field, where the state vector evolves on the Bloch sphere.
+
+\paragraph{Applying Initial Conditions}
+% TODO: complete
+% Initial conditions: A_0 (0) = 0.837, A_1(0) = 0.548,
+% beta = 9.9892 um^{-1}, kappa = 0.107 um^{-1}
+For a device where the input complex amplitudes are $A_1(0) = 0.837$ and $A_2(0) = 0.548$ (in arbitrary units, e.g., $\sqrt{\text{mW}}$ if power is in mW), and with a propagation constant $\beta = 9.9892 \, \mu\text{m}^{-1}$ and a coupling coefficient $\kappa = 0.107 \, \mu\text{m}^{-1}$, the mode amplitudes evolve as
+\begin{align}
+A_1(z) &= e^{-jz(9.9892)} (0.837\cos(0.107z) - j \cdot 0.548\sin(0.107z)) \\
+A_2(z) &= e^{-jz(9.9892)} (-j \cdot 0.837\sin(0.107z) + 0.548\cos(0.107z)),
+\end{align}
+where $z$ is the propagation distance in $\mu\text{m}$.
+
+This solution describes the coherent superposition of the optical fields in the coupled system.
+
+\section{Optical power}
+
+By definition, the power flow in mode $i$ is:
+
+\[P_i(z)=|A_i(z)|^2 = A_i(z)A_i^*(z).\]
+
+The common phase factor $e^{-jz\beta}$ has unit magnitude and thus does not affect the waveguide power. With real initial amplitudes (in-phase optical fields), the power expressions simplify:
+\begin{align}
+P_1(z) &= |A_1(0)\cos(z\kappa) - jA_2(0)\sin(z\kappa)|^2 \nonumber \\
+       &= A_1(0)^2\cos^2(z\kappa) + A_2(0)^2\sin^2(z\kappa). \\
+P_2(z) &= |-jA_1(0)\sin(z\kappa) + A_2(0)\cos(z\kappa)|^2 \nonumber \\
+       &= A_1(0)^2\sin^2(z\kappa) + A_2(0)^2\cos^2(z\kappa).
+\end{align}
+
+\paragraph{Conservation of total optical power}
+The total optical power in the system is
+
+\begin{align}
+    P_{\text{total}}(z) &= P_1(z) + P_2(z).\\
+    &= A_1(0)^2 + A_2(0)^2 \\
+    &= P_{\text{total}}(0).
+\end{align}
+
+This confirms the conservation of total optical power along $z$, a direct consequence of the lossless coupling model and the unitary nature of the transfer matrix $e^{-jz\kappa\sigma_x}$.
+
+\paragraph{Waveguide power evolution along $z$}
+Using the given initial conditions, $A_1(0) = 0.837$ and $A_2(0) = 0.548$, the initial powers (in corresponding arbitrary power units) are
+\begin{align}
+P_1(0) &= 0.837^2 \approx 0.700 \\
+P_2(0) &= 0.548^2 \approx 0.300.
+\end{align}
+The power evolution along $z$ (in $\mu\text{m}$) is:
+\begin{align}
+P_1(z) &\approx 0.700 \cos^2(0.107z) + 0.300 \sin^2(0.107z) \\
+P_2(z) &\approx 0.700 \sin^2(0.107z) + 0.300 \cos^2(0.107z).
+\end{align}
+Employing the half-angle identities, these can be rewritten as:
+\begin{align}
+P_1(z) &= \frac{P_{\text{total}}}{2} + \frac{P_1(0)-P_2(0)}{2}\cos(2z\kappa) \\
+&\approx 0.500 + 0.200 \cos(0.214z) \\
+P_2(z) &= \frac{P_{\text{total}}}{2} - \frac{P_1(0)-P_2(0)}{2}\cos(2z\kappa) \\
+&\approx 0.500 - 0.200 \cos(0.214z).
+\end{align}
+These expressions explicitly show the oscillatory nature of the power exchange between the two waveguides: when one waveguide's power is at a maximum, the other's is at a minimum.
+
+\paragraph{Distance for equal power splitting}
+A fundamental component in photonic integrated circuits is the 3dB coupler, or power splitter, designed to equally distribute input power between its output ports:
+\[P_1(z) = P_2(z).\]
+From the power evolution equations:
+\[ \frac{P_{\text{total}}}{2} + \frac{P_1(0)-P_2(0)}{2}\cos(2z\kappa) = \frac{P_{\text{total}}}{2} - \frac{P_1(0)-P_2(0)}{2}\cos(2z\kappa). \]
+
+With the initial conditions imposing $P_1(0) \neq P_2(0)$,
+this equality requires $\cos(2z\kappa) = 0$.
+The shortest positive propagation distance $z$ for this condition occurs when $2z\kappa = \pi/2$, which implies $z_{3\text{dB}} = \pi/(4\kappa)$.
+Substituting $\kappa = 0.107 \, \mu\text{m}^{-1}$:
+\[ z_{\text{3dB}} = \frac{\pi}{4 \times 0.107 \, \mu\text{m}^{-1}} \approx 7.340 \, \mu\text{m}. \]
+
+At this propagation distance, $P_1(z_{\text{3dB}}) = P_2(z_{\text{3dB}}) = P_{\text{total}}/2 \approx 0.500$.
+A directional coupler with this interaction length will function as a 3dB power splitter.
+
+\paragraph{Distance for maximum power in one waveguide}
+Achieving maximum power concentration in a single waveguide is crucial for applications like optical switching or routing.
+The peak power attainable in either guide, given the initial conditions, is $P_1(0) \approx 0.700$, since $P_1(0) > _2(0)$.
+
+$P_1(z)$ is maximized when $\cos(2z\kappa)=1$. This condition yields $P_1(z) = P_1(0)$ and $P_2(z) = P_2(0)$, effectively returning the system to its initial power distribution. This occurs when $2z\kappa = 2n\pi$ for integer $n\in\mathbb{Z}^+$, so $z = n\pi/\kappa$. The shortest non-zero length for this is $L_{1} = \pi/\kappa$:
+\[ L_{1} = \frac{\pi}{0.107 \, \mu\text{m}^{-1}} \approx 29.4 \, \mu\text{m}. \]
+
+Conversely, $P_2(z)$ is maximized when $\cos(2z\kappa)=-1$. At this point, $P_2(z)$ reaches the value $P_1(0)$, and $P_1(z)$ correspondingly drops to $P_2(0)$. This represents the maximum transfer of power from the initially more powerful waveguide (Waveguide 1) to the other (Waveguide 2).
+
+This occurs when $2z\kappa = (2n+1)\pi$ for integer $n$, so $z = (n+1/2)\pi/\kappa$. The shortest positive length for this condition is the coupling length $L_{2} = \pi/(2\kappa)$:
+\[ L_{2} = \frac{\pi}{2 \times 0.107 \, \mu\text{m}^{-1}} \approx 14.680 \, \mu\text{m}. \]
+
+At this distance $L_{2}$, the power in Waveguide 2 is $P_2(L_{2}) = P_1(0) \approx 0.700$, and the power in Waveguide 1 is $P_1(L_{2}) = P_2(0) \approx 0.300$. This length is fundamental in designing directional couplers that function as cross-connects (if $P_2(0)$ were zero, all power from Waveguide 1 would transfer to Waveguide 2).
+
+This $L_{2}$ is the shortest distance to achieve the system's maximum observed power ($P_1(0)$) in a waveguide that did not initially hold this maximum power.
+
+\section{Conclusion}
+Coupled-mode theory is clearly potent and is able to specify design parameters for photonic integrated circuits.
+The closed-form solution of the coupled-mode equations provides a clear understanding of the power evolution in coupled waveguides, revealing oscillatory behavior and conservation of total optical power. The derived distances for 3dB splitting and maximum power transfer are critical for designing efficient photonic devices.
+
+However, the assumptions of ideal coupling and lossless propagation are often not met in practical devices. Real-world applications must consider fabrication imperfections, material absorption, and waveguide bending losses, which can significantly affect the performance of photonic integrated circuits. 
+A similar analysis to the one presented here can be performed to account for these effects, by including the imaginary parts of the propagation constant $\beta$ and the coupling coefficient $\kappa$ in the coupled-mode equations, leading to a more complex solution that captures the non-ideal behavior of real devices.
+
+Moreover, we have only considered a single mode of monochromatic light at a fixed wavelength. In practice, the wavelength dependence of the coupling coefficient and propagation constant can lead to chromatic dispersion and group-velocity mismatch which may require more sophisticated modeling and design techniques.
+
+Efficient coupling between waveguides is possible across modes of different orders, for example by effective index matching.
+
+\printbibliography
+\end{document}
