@@ -1,0 +1,16 @@
+from _typeshed import Incomplete
+from lumopt.geometries.geometry import Geometry as Geometry
+
+class ParameterizedGeometry(Geometry):
+    deps_num_threads: Incomplete
+    func: Incomplete
+    current_params: Incomplete
+    bounds: Incomplete
+    obj_bounds: Incomplete
+    dx: Incomplete
+    params_hist: Incomplete
+    def __init__(self, func, initial_params, bounds, dx, deps_num_threads: int = 1, obj_bounds: Incomplete | None = None) -> None: ...
+    def update_geometry(self, params, sim) -> None: ...
+    def get_current_params(self): ...
+    def calculate_gradients(self, gradient_fields) -> None: ...
+    def add_geo(self, sim, params, only_update): ...
