@@ -2,6 +2,9 @@ from _typeshed import Incomplete
 from collections.abc import Generator
 from contextlib import contextmanager
 from ctypes import Structure, Union
+import types
+
+import numpy as np
 
 INTEROPLIBDIR: Incomplete
 INTEROPLIB_FILENAME: str
@@ -37,10 +40,17 @@ class LumApiError(Exception):
     def __init__(self, value) -> None: ...
 
 def verifyConnection(handle): ...
+
 biopen = open
 
 def extractsHostnameAndPort(remoteArgs): ...
-def open(product, key: Incomplete | None = None, hide: bool = False, serverArgs={}, remoteArgs={}): ...
+def open(
+    product,
+    key: Incomplete | None = None,
+    hide: bool = False,
+    serverArgs={},
+    remoteArgs={},
+): ...
 def close(handle) -> None: ...
 def evalScript(handle, code, verifyConn: bool = False) -> None: ...
 def getVar(handle, varname, verifyConn: bool = False): ...
@@ -61,7 +71,9 @@ class MatrixDatasetTranslator:
 
 class PointDatasetTranslator:
     @staticmethod
-    def applyConventionToStruct(d, geometryShape, paramShape, removeScalarDim) -> None: ...
+    def applyConventionToStruct(
+        d, geometryShape, paramShape, removeScalarDim
+    ) -> None: ...
     @staticmethod
     def createStructMemberPreTranslators(d, numGeomDims): ...
 
@@ -146,13 +158,28 @@ class Lumerical:
     handle: Incomplete
     syncUserFunctionsFlag: bool
     userFunctions: Incomplete
-    def __init__(self, product, filename, key, hide, serverArgs, remoteArgs, **kwargs) -> None: ...
+    def __init__(
+        self, product, filename, key, hide, serverArgs, remoteArgs, **kwargs
+    ) -> None: ...
     def __extractKeepCADOpenedArgument__(self, serverArgs): ...
     def __del__(self) -> None: ...
-    def __enter__(self): ...
-    def __exit__(self, type: type[BaseException] | None, value: BaseException | None, traceback: types.TracebackType | None) -> None: ...
+    def __enter__(self) -> "Lumerical": ...
+    def __exit__(
+        self,
+        type: type[BaseException] | None,
+        value: BaseException | None,
+        traceback: types.TracebackType | None,
+    ) -> None: ...
     def __getattr__(self, name): ...
-    def __open__(self, iapi, product, key: Incomplete | None = None, hide: bool = False, serverArgs={}, remoteArgs={}): ...
+    def __open__(
+        self,
+        iapi,
+        product,
+        key: Incomplete | None = None,
+        hide: bool = False,
+        serverArgs={},
+        remoteArgs={},
+    ): ...
     def close(self) -> None: ...
     def eval(self, code) -> None: ...
     def getv(self, varname): ...
@@ -162,13 +189,50 @@ class Lumerical:
     def getAllSelectedObjects(self): ...
 
 class INTERCONNECT(Lumerical):
-    def __init__(self, filename: Incomplete | None = None, key: Incomplete | None = None, hide: bool = False, serverArgs={}, remoteArgs={}, **kwargs) -> None: ...
+    def __init__(
+        self,
+        filename: Incomplete | None = None,
+        key: Incomplete | None = None,
+        hide: bool = False,
+        serverArgs={},
+        remoteArgs={},
+        **kwargs,
+    ) -> None: ...
 
 class DEVICE(Lumerical):
-    def __init__(self, filename: Incomplete | None = None, key: Incomplete | None = None, hide: bool = False, serverArgs={}, remoteArgs={}, **kwargs) -> None: ...
+    def __init__(
+        self,
+        filename: Incomplete | None = None,
+        key: Incomplete | None = None,
+        hide: bool = False,
+        serverArgs={},
+        remoteArgs={},
+        **kwargs,
+    ) -> None: ...
 
 class FDTD(Lumerical):
-    def __init__(self, filename: Incomplete | None = None, key: Incomplete | None = None, hide: bool = False, serverArgs={}, remoteArgs={}, **kwargs) -> None: ...
+    def __init__(
+        self,
+        filename: Incomplete | None = None,
+        key: Incomplete | None = None,
+        hide: bool = False,
+        serverArgs={},
+        remoteArgs={},
+        **kwargs,
+    ) -> None: ...
+    def __enter__(self) -> "FDTD": ...
+    def getfdtdindex(
+        self, materialName, f_range, f_min, f_max, verifyConn: bool = False
+    ) -> np.ndarray: ...
+    def stackrt(self, materialIndex, thickness, f_range, verifyConn: bool = False): ...
 
 class MODE(Lumerical):
-    def __init__(self, filename: Incomplete | None = None, key: Incomplete | None = None, hide: bool = False, serverArgs={}, remoteArgs={}, **kwargs) -> None: ...
+    def __init__(
+        self,
+        filename: Incomplete | None = None,
+        key: Incomplete | None = None,
+        hide: bool = False,
+        serverArgs={},
+        remoteArgs={},
+        **kwargs,
+    ) -> None: ...
