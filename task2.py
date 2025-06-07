@@ -20,17 +20,14 @@ import matplotlib.pyplot as plt
 
 u = 1e-6
 
-# export QT_QPA_PLATFORM=offscreen 
-# os.environ["QT_QPA_PLATFORM"] = "offscreen"
-
-with lumapi.FDTD(hide=True) as fdtd:
+with lumapi.FDTD(hide=False) as fdtd:
     fdtd.addfdtd(
         x=0,
         y=0,
         z=0,
         x_span=35 * u,
         y_span=18 * u,
-        z_span=1 * u,
+        z_span=0.5 * u,
         background_material="SiO2 (Glass) - Palik",
     )
     # Parallel waveguides
@@ -65,7 +62,7 @@ with lumapi.FDTD(hide=True) as fdtd:
         base_height=0.22 * u,
         base_angle=90,
     )
-    sbend_tr["poles"] = np.array([[0, 0], [5 * u, 0], [5 * u, 5 * u], [10 * u, 5 * u]])
+    sbend_tr.poles = np.array([[0, 0], [5 * u, 0], [5 * u, 5 * u], [10 * u, 5 * u]])
     sbend_br = fdtd.addwaveguide(
         name="sbend_br",
         material="Si (Silicon) - Palik",
@@ -76,7 +73,7 @@ with lumapi.FDTD(hide=True) as fdtd:
         base_height=0.22 * u,
         base_angle=90,
     )
-    sbend_br["poles"] = (
+    sbend_br.poles = (
         np.array(
             [
                 [0, 0],
@@ -97,7 +94,7 @@ with lumapi.FDTD(hide=True) as fdtd:
         base_height=0.22 * u,
         base_angle=90,
     )
-    sbend_tl["poles"] = (
+    sbend_tl.poles = (
         np.array(
             [
                 [0, 0],
@@ -118,7 +115,7 @@ with lumapi.FDTD(hide=True) as fdtd:
         base_height=0.22 * u,
         base_angle=90,
     )
-    sbend_bl["poles"] = (
+    sbend_bl.poles = (
         np.array(
             [
                 [0, 0],
@@ -174,12 +171,12 @@ with lumapi.FDTD(hide=True) as fdtd:
     # Mode source
     source = fdtd.addmode(
         name="mode_source",
-        x=-17 * u, # need to be just inside FDTD box
+        x=-17 * u,  # need to be just inside FDTD box
         y=5.325 * u,
         z=0,
         injection_axis="x-axis",
         mode_selection="fundamental TE mode",
-        center_wavelength=1.55*u,
+        center_wavelength=1.55 * u,
         wavelength_span=0,
         # wavelength_start=1.55e-6,
         # wavelength_stop=1.55e-6,
@@ -192,8 +189,8 @@ with lumapi.FDTD(hide=True) as fdtd:
         x=17 * u,  # need to be just inside FDTD box
         y=5.325 * u,
         z=0,
-        y_span=4 * u, # No x-span for 2D x-plane
-        z_span=2 * u,
+        y_span=2 * u,  # No x-span for 2D x-plane
+        z_span=0.25 * u,
     )
     mon_br = fdtd.addpower(
         name="mon_br",
@@ -201,8 +198,8 @@ with lumapi.FDTD(hide=True) as fdtd:
         x=17 * u,  # need to be just inside FDTD box
         y=-5.325 * u,
         z=0,
-        y_span=4 * u,
-        z_span=2 * u,
+        y_span=2 * u,
+        z_span=0.25 * u,
     )
     mon_znorm = fdtd.addpower(
         name="mon_zplane",
@@ -222,8 +219,8 @@ with lumapi.FDTD(hide=True) as fdtd:
         x=17 * u,  # need to be just inside FDTD box
         y=-5.325 * u,
         z=0,
-        y_span=4 * u,
-        z_span=2 * u,
+        y_span=2 * u,
+        z_span=0.25 * u,
     )
     fdtd.setexpansion("input", "mon_tr")
     me_br = fdtd.addmodeexpansion(
@@ -233,8 +230,13 @@ with lumapi.FDTD(hide=True) as fdtd:
         x=17 * u,  # need to be just inside FDTD box
         y=-5.325 * u,
         z=0,
-        y_span=4 * u,
-        z_span=2 * u,
+        y_span=2 * u,
+        z_span=0.25 * u,
     )
     fdtd.setexpansion("input", "mon_br")
+
+    # E = fdtd.getresult("mon_znorm", "E")
+    # fdtd.visualize(E)
+
+    fdtd.save("task2.fsp")
     fdtd.run()

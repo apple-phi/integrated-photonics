@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "black>=25.1.0",
     "matplotlib>=3.10.3",
+    "monkeytype>=23.3.0",
     "mypy>=1.16.0",
     "numpy>=2.2.6",
     "scipy>=1.15.3",
