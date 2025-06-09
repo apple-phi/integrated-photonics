@@ -1,0 +1,17 @@
+{
+    "parameters": {
+        "wg1_width": 5e-07,
+        "wg2_width": 5e-07,
+        "separation": 1.5e-07,
+        "coupling_length": 9.999999999999999e-06,
+        "wg_z_span": 2.1999999999999998e-07,
+        "fan_out_y_offset": 4.9999999999999996e-06,
+        "sbend_x_extent": 9.999999999999999e-06,
+        "center_wavelength": 1.55e-06,
+        "monitor_offset_from_sbend": 2.4999999999999998e-06,
+        "fdtd_xy_padding": 2.4999999999999998e-06,
+        "wg_extension_past_fdtd_edge": 1e-06
+    },
+    "T_net_tr": 0.5055600503831081,
+    "T_net_br": 0.48951144566371363
+}

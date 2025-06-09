@@ -12,5 +12,8 @@ dependencies = [
     "mypy>=1.16.0",
     "numpy>=2.2.6",
     "pandas>=2.3.0",
+    "questionary>=2.1.0",
+    "rich>=14.0.0",
     "scipy>=1.15.3",
+    "typer>=0.16.0",
 ]
