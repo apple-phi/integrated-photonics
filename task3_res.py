@@ -49,7 +49,7 @@ def plot_plane(data, title: str):
 
 
 with lumapi.FDTD(hide=False) as fdtd:
-    fdtd.load("task3.fsp")
+    fdtd.load("task3.fsp")  # Sim run from ./task3_sim.py
 
     # print("Available results:")
     # res_mon_tr = fdtd.getresult("mon_tr")
