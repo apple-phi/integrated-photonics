@@ -12,7 +12,10 @@ import questionary
 import datetime
 
 from sb4.simulation import run_simulation, u, create_layout_id  # Added create_layout_id
-from sb4.results import process_and_save_results, plot_plane_parametric  # Added plot_plane_parametric
+from sb4.results import (
+    process_and_save_results,
+    plot_plane_parametric,
+)  # Added plot_plane_parametric
 
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -73,7 +76,10 @@ def run(
         float, typer.Option(help="WG extension beyond FDTD edge (microns).")
     ] = 1.0,
     output_dir: Annotated[
-        pathlib.Path, typer.Option(help="Base directory for simulation outputs (layout-specific folders will be created here).")
+        pathlib.Path,
+        typer.Option(
+            help="Base directory for simulation outputs (layout-specific folders will be created here)."
+        ),
     ] = DEFAULT_OUTPUT_DIR,
     plot_z_plane: Annotated[
         bool, typer.Option(help="Plot Z-plane intensity after simulation.")
@@ -124,10 +130,15 @@ def run(
 def analyse_results(
     output_dir: Annotated[
         pathlib.Path,
-        typer.Option(help="Base directory containing layout-specific simulation output folders."),
+        typer.Option(
+            help="Base directory containing layout-specific simulation output folders."
+        ),
     ] = DEFAULT_OUTPUT_DIR,
     plot_z_plane: Annotated[
-        bool, typer.Option(help="Generate/regenerate Z-plane intensity plot during analysis.")
+        bool,
+        typer.Option(
+            help="Generate/regenerate Z-plane intensity plot during analysis."
+        ),
     ] = True,
 ):
     """
@@ -148,7 +159,9 @@ def analyse_results(
         raise typer.Exit(code=1)
 
     # Sort folders by modification time of their results.json, most recent first
-    layout_folders.sort(key=lambda x: (x / "results.json").stat().st_mtime, reverse=True)
+    layout_folders.sort(
+        key=lambda x: (x / "results.json").stat().st_mtime, reverse=True
+    )
 
     choices = []
     for folder in layout_folders:
@@ -158,8 +171,8 @@ def analyse_results(
                 results_data = json.load(f)
             # Display key results for quick identification
             # Using .get for robustness if keys are missing
-            tr_val = results_data.get("T_net_through_TL", float('nan'))
-            br_val = results_data.get("T_net_coupled_BL", float('nan'))
+            tr_val = results_data.get("T_net_through_TL", float("nan"))
+            br_val = results_data.get("T_net_coupled_BL", float("nan"))
             # Format to a reasonable number of decimal places
             title = f"{folder.name} (TR: {tr_val:.3f}, BL: {br_val:.3f}, mod: {results_json_path.stat().st_mtime:.0f})"
             if "error" in results_data:
@@ -188,7 +201,9 @@ def analyse_results(
     logger.info(f"Analysing layout: {layout_id} in folder: {selected_layout_folder}")
 
     if not results_json_path.exists():
-        logger.error(f"Critical: results.json not found in {selected_layout_folder}, though it was expected.")
+        logger.error(
+            f"Critical: results.json not found in {selected_layout_folder}, though it was expected."
+        )
         typer.echo(f"Error: results.json missing in {selected_layout_folder}.")
         raise typer.Exit(code=1)
 
@@ -198,8 +213,8 @@ def analyse_results(
     typer.echo(f"\n--- Results for Layout: {layout_id} ---")
     typer.echo(json.dumps(results_data, indent=2))
 
-    # Parameters are stored in results_data["parameters_meters"]
-    params_meters_from_results = results_data.get("parameters_meters")
+    # Parameters are stored in results_data["parameters"] in units of meters
+    params_meters_from_results = results_data.get("parameters")
 
     if plot_z_plane:
         plot_filename = f"z_plane_intensity_{layout_id}.png"
@@ -209,24 +224,28 @@ def analyse_results(
             logger.info(f"Plot {plot_filename} already exists at {plot_save_path}.")
             typer.echo(f"Plot available at: {plot_save_path}")
         elif sim_fsp_path.exists() and params_meters_from_results:
-            logger.info(f"Plot {plot_filename} not found. Generating from: {sim_fsp_path}")
+            logger.info(
+                f"Plot {plot_filename} not found. Generating from: {sim_fsp_path}"
+            )
             try:
                 # Need lumapi for plotting if we regenerate it here
                 import lumapi  # Ensure lumapi is available in this scope if not already
+
                 with lumapi.FDTD(hide=True) as fdtd:
                     fdtd.load(str(sim_fsp_path))
                     # Check if mon_zplane exists in the loaded simulation
-                    monitor_list = fdtd.get("monitorlist")
-                    if "mon_zplane" not in monitor_list:
-                        logger.warning("'mon_zplane' monitor not found in the .fsp file. Cannot generate plot.")
-                        typer.echo("Warning: 'mon_zplane' monitor not found in the .fsp file. Cannot generate plot.")
+                    if not fdtd.getnamed("mon_zplane"):
+                        logger.warning(
+                            "'mon_zplane' monitor not found in the .fsp file. Cannot generate plot."
+                        )
+                        typer.echo(
+                            "Warning: 'mon_zplane' monitor not found in the .fsp file. Cannot generate plot."
+                        )
                     else:
                         # Use results from JSON for title consistency
-                        tr_val = results_data.get("T_net_through_TL", float('nan'))
-                        bl_val = results_data.get("T_net_coupled_BL", float('nan'))
-                        plot_title_prefix = (
-                            f"Z-plane E-field Intensity (TL={tr_val:.4f}, BL={bl_val:.4f})"
-                        )
+                        tr_val = results_data.get("T_net_through_TL", float("nan"))
+                        bl_val = results_data.get("T_net_coupled_BL", float("nan"))
+                        plot_title_prefix = f"Z-plane E-field Intensity (TL={tr_val:.4f}, BL={bl_val:.4f})"
                         plot_plane_parametric(
                             fdtd_obj=fdtd,
                             title_prefix=plot_title_prefix,
@@ -242,11 +261,19 @@ def analyse_results(
                 logger.error(f"Could not generate plot for {layout_id}: {e_plot}")
                 typer.echo(f"Error generating plot: {e_plot}")
         elif not params_meters_from_results:
-            logger.warning(f"Parameters not found in results.json. Cannot reliably (re)generate plot for {layout_id}.")
-            typer.echo("Warning: Parameters missing in results.json, cannot generate plot.")
+            logger.warning(
+                f"Parameters not found in results.json. Cannot reliably (re)generate plot for {layout_id}."
+            )
+            typer.echo(
+                "Warning: Parameters missing in results.json, cannot generate plot."
+            )
         else:
-            logger.warning(f"Simulation file {sim_fsp_path} not found. Cannot generate plot for {layout_id}.")
-            typer.echo(f"Warning: Simulation file {sim_fsp_path.name} missing, cannot generate plot.")
+            logger.warning(
+                f"Simulation file {sim_fsp_path} not found. Cannot generate plot for {layout_id}."
+            )
+            typer.echo(
+                f"Warning: Simulation file {sim_fsp_path.name} missing, cannot generate plot."
+            )
 
     typer.echo(f"--- End of Analysis for {layout_id} ---")
 
