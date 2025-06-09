@@ -4214,7 +4214,7 @@ class Lumerical:
             Signature autogen'd from: `o.appevalscript(h,'scriptcommand')`
         """
 
-    def appgetvar(self, h: float, T: float, **kwargs: Any) -> Any:
+    def appgetvar(self, h: str, T: str, **kwargs: Any) -> Any:
         """
         A Matlab command that will retrieve a variable from Lumerical workspace
         into Matlab workspace via Matlab interoperability API.
@@ -12227,7 +12227,7 @@ class Lumerical:
     @overload
     def getresult(self, monitor_name: str, **kwargs: Any) -> Any: ...
     @overload
-    def getresult(self, monitor_name: str, T: float, **kwargs: Any) -> Any: ...
+    def getresult(self, monitor_name: str, T: str, **kwargs: Any) -> Any: ...
     def getresult(self, *args: Any, **kwargs: Any) -> Any:
         """
         Get results from simulation objects. Results will be returned as
@@ -26651,9 +26651,9 @@ class Lumerical:
         """
 
     @overload
-    def visualize(self, R: float, **kwargs: Any) -> Any: ...
+    def visualize(self, R: str, **kwargs: Any) -> Any: ...
     @overload
-    def visualize(self, R: float, T: float, **kwargs: Any) -> Any: ...
+    def visualize(self, R: str, T: str, **kwargs: Any) -> Any: ...
     def visualize(self, *args: Any, **kwargs: Any) -> Any:
         """
         Sends data to the visualizer (see Visualizer and figure settings).

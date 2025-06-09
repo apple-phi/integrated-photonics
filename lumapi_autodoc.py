@@ -189,6 +189,12 @@ def infer_param_type(param_name: str) -> str:
     if param_lower in ["x", "y", "z", "dx", "dy", "dz"]:
         return "float"
 
+    if param in ["x_span", "y_span", "z_span"]:
+        return "float"
+
+    if param in ["T"]:
+        return "str"
+
     # Common single-letter variables that are usually numeric
     if len(param_name) == 1 and param_name.lower() in "abcdefghijklmnopqrstuvwxyz":
         return "float"

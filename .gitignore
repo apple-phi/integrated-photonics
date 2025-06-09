@@ -1,5 +1,5 @@
 *.log
-*.fsp
+# *.fsp
 *.pyc
 __pycache__
 *_cache
