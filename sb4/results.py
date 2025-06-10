@@ -4,52 +4,13 @@ import os
 import sys
 import pathlib
 import json
-
-# import csv # Removed, no longer creating summary CSV
 import logging
-
 import numpy as np
 import matplotlib.pyplot as plt
 
+from wrapper import lumapi, u
+
 logger = logging.getLogger(__name__)
-
-# Ensure lumapi can be imported
-try:
-    import lumapi  # type: ignore[import-untyped]
-except ImportError as e:
-    lumerical_install_dir = pathlib.Path(
-        os.getenv("LUMERICAL_INSTALL_DIR", "C:\\\\Program Files\\\\Lumerical")
-    )
-    found_lumapi = False
-    for version_dir in lumerical_install_dir.iterdir():
-        if version_dir.is_dir():
-            py_api_dir = version_dir / "api" / "python"
-            if (py_api_dir / "lumapi.py").exists():
-                sys.path.append(str(py_api_dir))
-                logger.info(f"Found lumapi at: '{py_api_dir / 'lumapi.py'}'")
-                import lumapi  # type: ignore[import-untyped]
-
-                found_lumapi = True
-                break
-            alt_py_api_dir = version_dir / "python"
-            if (alt_py_api_dir / "lumapi.py").exists():
-                sys.path.append(str(alt_py_api_dir))
-                logger.info(f"Found lumapi at: '{alt_py_api_dir / 'lumapi.py'}'")
-                import lumapi  # type: ignore[import-untyped]
-
-                found_lumapi = True
-                break
-    if not found_lumapi:
-        logger.error(
-            "lumapi.py not found. Please ensure Lumerical is installed and "
-            "LUMERICAL_INSTALL_DIR environment variable is set, or lumapi.py is in PYTHONPATH."
-        )
-        raise ImportError(
-            "lumapi.py not found. Please ensure Lumerical is installed and "
-            "LUMERICAL_INSTALL_DIR environment variable is set, or lumapi.py is in PYTHONPATH."
-        ) from e
-
-u = 1e-6
 
 
 def plot_plane_parametric(
@@ -99,7 +60,6 @@ def process_and_save_results(
 
     logger.info(f"Processing results for layout: {layout_id} from file: {sim_filepath}")
     logger.info(f"Results will be saved in: {output_path}")
-
 
     results_data = {}
     results_data["parameters"] = params_dict

@@ -7,48 +7,10 @@ import pathlib
 import numpy as np
 import logging
 import json  # Added for checking existing results
+from wrapper import lumapi, u
+from .results import plot_plane_parametric, process_and_save_results
 
 logger = logging.getLogger(__name__)  # Use a named logger
-
-# Attempt to find lumapi dynamically if direct import fails
-try:
-    import lumapi  # type: ignore[import-untyped]
-except ImportError as e:
-    lumerical_install_dir = pathlib.Path(
-        os.getenv("LUMERICAL_INSTALL_DIR", "C:\\Program Files\\Lumerical")
-    )
-    found_lumapi = False
-    for version_dir in lumerical_install_dir.iterdir():
-        if version_dir.is_dir():
-            py_api_dir = version_dir / "api" / "python"
-            if (py_api_dir / "lumapi.py").exists():
-                sys.path.append(str(py_api_dir))
-                logger.info(f"Found lumapi at: '{py_api_dir / 'lumapi.py'}'")
-                import lumapi  # type: ignore[import-untyped]
-
-                found_lumapi = True
-                break
-            alt_py_api_dir = version_dir / "python"
-            if (alt_py_api_dir / "lumapi.py").exists():
-                sys.path.append(str(alt_py_api_dir))
-                logger.info(f"Found lumapi at: '{alt_py_api_dir / 'lumapi.py'}'")
-                import lumapi  # type: ignore[import-untyped]
-
-                found_lumapi = True
-                break
-    if not found_lumapi:
-        logger.error(
-            "lumapi.py not found. Please ensure Lumerical is installed and "
-            "LUMERICAL_INSTALL_DIR environment variable is set, or lumapi.py is in PYTHONPATH."
-        )
-        raise ImportError(
-            "lumapi.py not found. Please ensure Lumerical is installed and "
-            "LUMERICAL_INSTALL_DIR environment variable is set, or lumapi.py is in PYTHONPATH."
-        ) from e
-
-from .results import process_and_save_results, plot_plane_parametric  # Adjusted import
-
-u = 1e-6  # micrometers
 
 
 def create_layout_id(params: dict, u_val: float = 1e-6) -> str:
@@ -87,6 +49,53 @@ def create_layout_id(params: dict, u_val: float = 1e-6) -> str:
                 )
 
     return "_".join(param_strs)
+
+
+def add_rect(
+    fdtd: lumapi.FDTD,
+    name: str,
+    xyz: tuple,
+    span: tuple,
+    material: str = "Si (Silicon) - Palik",
+):
+    """Helper function to add a rectangular waveguide."""
+    x, y, z = xyz
+    x_span, y_span, z_span = span
+    fdtd.addrect(
+        name=name,
+        material=material,
+        x=x,
+        y=y,
+        z=z,
+        x_span=x_span,
+        y_span=y_span,
+        z_span=z_span,
+    )
+
+
+def add_sbend(
+    fdtd: lumapi.FDTD,
+    name: str,
+    wh: tuple,
+    xyz: tuple,
+    poles: np.ndarray,
+    material: str = "Si (Silicon) - Palik",
+):
+    """Helper function to add a waveguide S-bend."""
+    base_width, base_height = wh
+    x, y, z = xyz
+    sbend = fdtd.addwaveguide(
+        name=name,
+        material=material,
+        base_width=base_width,
+        base_height=base_height,
+        base_angle=90,
+        x=x,
+        y=y,
+        z=z,
+    )
+    sbend["poles"] = poles
+    return sbend
 
 
 def run_simulation(
