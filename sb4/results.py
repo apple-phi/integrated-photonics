@@ -36,8 +36,8 @@ def plot_plane_parametric(fdtd_obj, title_prefix: str, target_dir: pathlib.Path)
     plot_title = title_prefix  # Removed run_id from title
     plt.title(plot_title)
     plt.colorbar(pcm, label="Intensity (a.u.)")
-    plt.gca().set_aspect('auto') # Ensure plot fills axes
-    plt.tight_layout() # Adjust layout to prevent overlap
+    plt.gca().set_aspect("auto")  # Ensure plot fills axes
+    plt.tight_layout()  # Adjust layout to prevent overlap
 
     plot_filename = "z_plane_intensity.png"  # Fixed filename
     save_path = target_dir / plot_filename
@@ -47,9 +47,9 @@ def plot_plane_parametric(fdtd_obj, title_prefix: str, target_dir: pathlib.Path)
 
 
 def process_and_save_results(
-    sim_filepath: str,  # Full path to the .fsp file (e.g., .../sim_YYYYMMDD_HHMMSS_ffffff/simulation.fsp)
-    params_dict: dict,  # Parameters used for this simulation (in meters)
-    output_dir: str,  # Directory where results.json and plots will be saved (e.g., .../sim_YYYYMMDD_HHMMSS_ffffff)
+    sim_filepath: str,  # Full path to the .fsp file (e.g., .../sim_HHMM_DDMMYY/simulation.fsp)
+    params_dict: dict,  # Parameters used for this simulation (in MICRONS)
+    output_dir: str,  # Directory where results.json and plots will be saved (e.g., .../sim_HHMM_DDMMYY)
     plot_z_plane: bool = False,
 ):
     """Loads results from a Lumerical simulation, processes, and saves them
@@ -64,7 +64,7 @@ def process_and_save_results(
     logger.info(f"Results will be saved in: {output_path}")
 
     results_data = {}
-    results_data["parameters"] = params_dict
+    results_data["parameters"] = params_dict  # Already in microns
     results_data["run_id"] = run_id  # Store run_id in results for traceability
 
     try:

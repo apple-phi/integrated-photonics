@@ -1,6 +1,7 @@
 import pathlib
 import sys
 import logging
+import warnings
 
 logger = logging.getLogger(__name__)
 root = pathlib.Path("C:\\Program Files\\Lumerical")
@@ -14,7 +15,9 @@ for dirpath, dirnames, filenames in root.walk():
 else:
     raise ImportError(f"lumapi.py not found anywhere in {root}")
 
-import lumapi as lumapi_raw  # type: ignore[import-untyped]
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", SyntaxWarning)  # lumapi.py has a known SyntaxWarning (it tries to support Python 2 and 3)
+    import lumapi as lumapi_raw  # type: ignore[import-untyped]
 
 lumapi = lumapi_raw  # For compatibility with existing code
 u = 1e-6  # Micrometer unit for convenience

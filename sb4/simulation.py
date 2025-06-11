@@ -16,8 +16,8 @@ from .results import process_and_save_results, plot_plane_parametric  # Ensure p
 logger = logging.getLogger(__name__)  # Use a named logger
 
 
-def _find_existing_successful_run(output_base_dir: pathlib.Path, params_to_match: Dict[str, Any]) -> Tuple[Optional[pathlib.Path], Optional[Dict[str, Any]]]:
-    """Scans for an existing successfully completed run with matching parameters."""
+def _find_existing_successful_run(output_base_dir: pathlib.Path, params_microns_to_match: Dict[str, Any]) -> Tuple[Optional[pathlib.Path], Optional[Dict[str, Any]]]:
+    """Scans for an existing successfully completed run with matching parameters (in microns)."""
     if not output_base_dir.exists():
         return None, None
 
@@ -33,8 +33,8 @@ def _find_existing_successful_run(output_base_dir: pathlib.Path, params_to_match
             with open(results_json_path, "r", encoding="utf-8") as f:
                 existing_results = json.load(f)
 
-            # Parameter comparison
-            if existing_results.get("parameters") != params_to_match:
+            # Parameter comparison (expects params_microns_to_match)
+            if existing_results.get("parameters") != params_microns_to_match:
                 continue
 
             # Success criteria
@@ -63,7 +63,7 @@ def _handle_existing_run_plotting(run_folder: pathlib.Path, existing_results: Di
     """Handles plotting for an existing run if the plot is missing."""
     sim_fsp_path = run_folder / "simulation.fsp"
     plot_png_path = run_folder / "z_plane_intensity.png"
-    existing_run_id = run_folder.name
+    existing_run_id = run_folder.name  # This is sim_HHMM_DDMMYY
 
     if plot_png_path.exists():
         logger.info(f"Plot already exists for existing run at {plot_png_path}")
@@ -103,35 +103,37 @@ def add_sbend(fdtd: lumapi.FDTD, name: str, wh: tuple, xyz: tuple, poles: list |
     return sbend
 
 
-def run_simulation(params: dict, output_base_dir: str = "task3", plot_z_plane_each_run: bool = False, hide_fdtd_gui: bool = False):
+def run_simulation(params_microns: dict[str, float], output_base_dir: str = "task3", plot_z_plane_each_run: bool = False, hide_fdtd_gui: bool = False):
     """
     Sets up and runs a Lumerical FDTD simulation for a dual waveguide coupler
     based on the provided parameters. Saves all outputs to a unique, timestamped
-    directory under output_base_dir. Checks for existing successful runs with
-    identical parameters before starting a new simulation.
+    directory (sim_HHMM_DDMMYY) under output_base_dir.
+    Checks for existing successful runs with identical parameters before starting a new simulation.
 
     Args:
-        params (dict): Dictionary of simulation parameters (in meters).
+        params_microns (dict): Dictionary of simulation parameters (in MICRONS).
         output_base_dir (str): Base directory where run-specific folders will be created.
         plot_z_plane_each_run (bool): Whether to generate and save z-plane plot.
         hide_fdtd_gui (bool): Whether to hide the Lumerical FDTD CAD window.
     """
 
-    # 1. Check for existing successful runs with matching parameters
+    # Convert microns to meters for Lumerical internal use
+    params_meters = {key: value * u for key, value in params_microns.items()}
+
+    # 1. Check for existing successful runs with matching parameters (microns)
     base_path = pathlib.Path(output_base_dir)
-    existing_run_folder, existing_run_results = _find_existing_successful_run(base_path, params)
+    existing_run_folder, existing_run_results = _find_existing_successful_run(base_path, params_microns)
 
     if existing_run_folder and existing_run_results:
         existing_run_id = existing_run_folder.name
         logger.info(f"Found existing successful run ({existing_run_id}) with matching parameters in: {existing_run_folder}")
-        print(f"Skipping simulation: Found existing successful run ({existing_run_id}) with matching parameters in {existing_run_folder}")
 
         if plot_z_plane_each_run:
             _handle_existing_run_plotting(existing_run_folder, existing_run_results, hide_fdtd_gui_for_plot=True)
         return  # Skip new simulation
 
     # 2. If no matching successful run is found, proceed with new simulation
-    run_id = f"sim_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
+    run_id = f"sim_{datetime.now().strftime('%H%M_%d%m%y')}"  # Format: sim_HHMM_DDMMYY
     logger.info(f"Generated new run ID: {run_id}")
 
     current_run_output_dir = pathlib.Path(output_base_dir) / run_id
@@ -144,20 +146,21 @@ def run_simulation(params: dict, output_base_dir: str = "task3", plot_z_plane_ea
 
     # Removed the block for checking existing results. Each call creates a new run.
 
-    logger.info(f"Starting simulation for run: {run_id} with parameters: {params}")
+    logger.info(f"Starting simulation for run: {run_id} with parameters (microns): {params_microns}")
+    logger.info(f"Parameters converted to meters for Lumerical: {params_meters}")
 
-    wg1_w = params["wg1_width"]
-    wg2_w = params["wg2_width"]
-    sep = params["separation"]
-    L_coup = params["coupling_length"]
-    wg_z = params["wg_z_span"]
-    sbend_y_total = params["fan_out_y_offset"]
-    sbend_x_total = params["sbend_x_extent"]
-    center_wl = params["center_wavelength"]
+    wg1_w = params_meters["wg1_width"]
+    wg2_w = params_meters["wg2_width"]
+    sep = params_meters["separation"]
+    L_coup = params_meters["coupling_length"]
+    wg_z = params_meters["wg_z_span"]
+    sbend_y_total = params_meters["fan_out_y_offset"]
+    sbend_x_total = params_meters["sbend_x_extent"]
+    center_wl = params_meters["center_wavelength"]  # This is already a wavelength value, not a length for conversion
 
-    monitor_sbend_offset = params["monitor_offset_from_sbend"]
-    fdtd_padding = params["fdtd_xy_padding"]
-    wg_ext_past_fdtd = params["wg_extension_past_fdtd_edge"]
+    monitor_sbend_offset = params_meters["monitor_offset_from_sbend"]
+    fdtd_padding = params_meters["fdtd_xy_padding"]
+    wg_ext_past_fdtd = params_meters["wg_extension_past_fdtd_edge"]
 
     # --- Derived Geometric Calculations ---
     # Y positions of the center of the parallel waveguides
@@ -337,7 +340,7 @@ def run_simulation(params: dict, output_base_dir: str = "task3", plot_z_plane_ea
         logger.error(f"Error during Lumerical FDTD setup or run for {run_id}: {e}")
         # Save error information to a results.json in the run directory
         error_results_path = current_run_output_dir / "results.json"
-        error_data = {"parameters": params, "error": str(e), "run_id": run_id}
+        error_data = {"parameters": params_microns, "error": str(e), "run_id": run_id}  # Save params in microns
         with open(error_results_path, "w", encoding="utf-8") as f_err:
             json.dump(error_data, f_err, indent=4)
         logger.info(f"Error details saved to {error_results_path}")
@@ -348,7 +351,7 @@ def run_simulation(params: dict, output_base_dir: str = "task3", plot_z_plane_ea
     logger.info(f"Proceeding to process and save results for run {run_id}.")
     process_and_save_results(
         sim_filepath=str(sim_filepath),
-        params_dict=params,  # Pass original params (in meters)
+        params_dict=params_microns,  # Pass params in microns
         output_dir=str(current_run_output_dir),  # Pass the specific dir for this run's results
         plot_z_plane=plot_z_plane_each_run,
     )
