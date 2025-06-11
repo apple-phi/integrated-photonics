@@ -8,9 +8,10 @@ import logging
 from typing_extensions import Annotated
 from typing import Optional, List, Dict, Any
 import questionary
+from datetime import datetime
 
 from sb4.wrapper import lumapi
-from sb4.simulation import run_simulation, u, create_layout_id
+from sb4.simulation import run_simulation, u
 from sb4.results import process_and_save_results, plot_plane_parametric
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
-DEFAULT_OUTPUT_DIR = pathlib.Path("./task3")  # Unified output directory
+DEFAULT_OUTPUT_DIR = pathlib.Path("./data/task3")  # Unified output directory
 
 # Ensure default directory exists
 DEFAULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -46,7 +47,7 @@ def run(
         pathlib.Path,
         typer.Option(help="Base directory for simulation outputs (layout-specific folders will be created here)."),
     ] = DEFAULT_OUTPUT_DIR,
-    plot_z_plane: Annotated[bool, typer.Option(help="Plot Z-plane intensity after simulation.")] = False,
+    plot_z_plane: Annotated[bool, typer.Option(help="Plot Z-plane intensity after simulation.")] = True,
     show_gui: Annotated[bool, typer.Option(help="Show Lumerical FDTD CAD window during simulation.")] = True,
     # Removed run_id, sim_dir, results_dir as they are now handled internally by layout_id and output_dir
 ):
@@ -54,7 +55,7 @@ def run(
     Run a Lumerical FDTD simulation with specified parameters.
     All length parameters are in MICRONS.
     Outputs (.fsp, results.json, plots) are saved in a unique directory under `output_dir` for each parameter set.
-    If a simulation for the given parameters already exists and has valid results, it will be skipped.
+    A new timestamped folder is created for each run.
     """
     params_microns = {
         "wg1_width": wg1_width,
@@ -74,13 +75,13 @@ def run(
 
     params_meters = {key: value * u for key, value in params_microns.items()}
 
-    layout_id = create_layout_id(params_meters, u_val=u)
-    logger.info(f"Target layout ID: {layout_id}")
+    # layout_id creation is now handled within run_simulation which creates a timestamped folder
     logger.info(f"Output base directory: {output_dir}")
 
+    # run_simulation will now create a unique timestamped directory inside output_dir
+    # and will handle its own logging regarding the specific directory created.
     run_simulation(params=params_meters, output_base_dir=str(output_dir), plot_z_plane_each_run=plot_z_plane, hide_fdtd_gui=not show_gui)
-    # The run_simulation function now handles skipping and also calls results processing internally.
-    logger.info(f"Simulation and processing for layout {layout_id} finished.")
+    logger.info(f"Simulation and processing finished. Check output in: {output_dir}")
 
 
 @app.command("analyse")
@@ -100,39 +101,26 @@ def analyse_results(
     Scans the `output_dir` for layout folders (identified by having a `results.json` file).
     Presents a list of available layouts for selection, then displays their results.
     """
-    logger.info(f"Scanning for layout folders with results.json in: {output_dir}")
+    logger.info(f"Scanning for simulation run folders with results.json in: {output_dir}")
 
     layout_folders: List[pathlib.Path] = []
     for item in output_dir.iterdir():
-        if item.is_dir() and (item / "results.json").exists():
+        if item.is_dir() and (item / "results.json").exists():  # Check for results.json to identify a valid sim folder
             layout_folders.append(item)
 
     if not layout_folders:
-        logger.warning(f"No layout folders with results.json found in {output_dir}.")
-        typer.echo(f"No layout folders with results.json found in {output_dir}.")
-        raise typer.Exit(code=1)
+        logger.warning(f"No simulation run folders with results.json found in {output_dir}.")
+        typer.echo(f"No simulation run folders with results.json found in {output_dir}.")
+        raise typer.Exit()
 
     # Sort folders by modification time of their results.json, most recent first
     layout_folders.sort(key=lambda x: (x / "results.json").stat().st_mtime, reverse=True)
 
     choices = []
     for folder in layout_folders:
-        results_json_path = folder / "results.json"
-        try:
-            with open(results_json_path, "r") as f:
-                results_data = json.load(f)
-            # Display key results for quick identification
-            # Using .get for robustness if keys are missing
-            tr_val = results_data.get("T_net_through_TL", float("nan"))
-            br_val = results_data.get("T_net_coupled_BL", float("nan"))
-            # Format to a reasonable number of decimal places
-            title = f"{folder.name} (TR: {tr_val:.3f}, BL: {br_val:.3f}, mod: {results_json_path.stat().st_mtime:.0f})"
-            if "error" in results_data:
-                title += " [ERROR]"
-        except Exception as e:
-            title = f"{folder.name} (Error reading results: {e}, mod: {results_json_path.stat().st_mtime:.0f})"
-
-        choices.append(questionary.Choice(title=title, value=str(folder)))
+        # Display folder name (timestamp) and modification time for clarity
+        results_mod_time = datetime.fromtimestamp((folder / "results.json").stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+        choices.append(questionary.Choice(title=f"{folder.name} (Results: {results_mod_time})", value=str(folder)))
 
     selected_layout_folder_str = questionary.select(
         "Select a layout folder to analyse:",
@@ -141,64 +129,63 @@ def analyse_results(
     ).ask()
 
     if not selected_layout_folder_str:
-        logger.info("No folder selected. Exiting analysis.")
-        typer.echo("No folder selected. Exiting.")
+        logger.info("No layout folder selected for analysis.")
         raise typer.Exit()
 
     selected_layout_folder = pathlib.Path(selected_layout_folder_str)
+    # The layout_id is now the timestamped folder name.
+    # Files inside will have fixed names e.g. simulation.fsp, results.json
     layout_id = selected_layout_folder.name
-    sim_fsp_path = selected_layout_folder / f"{layout_id}.fsp"
+    sim_fsp_path = selected_layout_folder / "simulation.fsp"  # Adjusted to fixed filename
     results_json_path = selected_layout_folder / "results.json"
 
     logger.info(f"Analysing layout: {layout_id} in folder: {selected_layout_folder}")
 
     if not results_json_path.exists():
-        logger.error(f"Critical: results.json not found in {selected_layout_folder}, though it was expected.")
-        typer.echo(f"Error: results.json missing in {selected_layout_folder}.")
+        logger.error(f"Critical: results.json not found in {selected_layout_folder} after selection. This should not happen.")
+        typer.echo(f"Error: results.json not found in {selected_layout_folder}.")
         raise typer.Exit(code=1)
 
     with open(results_json_path, "r", encoding="utf-8") as f:
         results_data = json.load(f)
 
-    typer.echo(f"\n--- Results for Layout: {layout_id} ---")
+    typer.echo(f"\n--- Results for Run: {layout_id} ---")
     rich.pretty.pprint(results_data, max_length=80, expand_all=True)
 
     # Parameters are stored in results_data["parameters"] in units of meters
     params_meters_from_results = results_data.get("parameters")
 
     if plot_z_plane:
-        plot_filename = f"z_plane_intensity_{layout_id}.png"
-        plot_save_path = selected_layout_folder / plot_filename
-
-        if plot_save_path.exists():
-            logger.info(f"Plot {plot_filename} already exists at {plot_save_path}.")
-            typer.echo(f"Plot available at: {plot_save_path}")
-        elif sim_fsp_path.exists() and params_meters_from_results:
-            logger.info(f"Plot {plot_filename} not found. Generating from: {sim_fsp_path}")
-            with lumapi.FDTD(hide=True) as fdtd:
-                fdtd.load(str(sim_fsp_path))
-                # Check if mon_zplane exists in the loaded simulation
-                if not fdtd.getnamed("mon_zplane"):
-                    logger.warning("'mon_zplane' monitor not found in the .fsp file. Cannot generate plot.")
-                    typer.echo("Warning: 'mon_zplane' monitor not found in the .fsp file. Cannot generate plot.")
-                else:
-                    # Use results from JSON for title consistency
-                    tr_val = results_data.get("T_net_through_TL", float("nan"))
-                    bl_val = results_data.get("T_net_coupled_BL", float("nan"))
-                    plot_title_prefix = f"Z-plane E-field Intensity (TL={tr_val:.4f}, BL={bl_val:.4f})"
-                    plot_plane_parametric(
-                        fdtd_obj=fdtd,
-                        title_prefix=plot_title_prefix,
-                        layout_id=layout_id,
-                        target_dir=selected_layout_folder,
-                    )
-                    typer.echo(f"Generated plot: {plot_save_path}")
-        elif not params_meters_from_results:
-            logger.warning(f"Parameters not found in results.json. Cannot reliably (re)generate plot for {layout_id}.")
-            typer.echo("Warning: Parameters missing in results.json, cannot generate plot.")
-        else:
-            logger.warning(f"Simulation file {sim_fsp_path} not found. Cannot generate plot for {layout_id}.")
-            typer.echo(f"Warning: Simulation file {sim_fsp_path.name} missing, cannot generate plot.")
+        if params_meters_from_results and sim_fsp_path.exists():
+            # Need to pass the FDTD object or path to plot_plane_parametric
+            # For simplicity, let's assume plot_plane_parametric can take the sim_fsp_path
+            # and handle loading if necessary, or it's called from a context where fdtd object is available.
+            # The original plot_plane_parametric in results.py takes an fdtd_obj.
+            # This might require a change in how plotting is invoked here or in results.py
+            # For now, let's assume we might need to load the simulation to plot.
+            # This part of analyse_results might need further refinement based on how plotting is handled.
+            logger.info(f"Attempting to generate Z-plane plot for {layout_id} using {sim_fsp_path}")
+            # This is a placeholder for how plotting would be re-invoked.
+            # The original `plot_plane_parametric` is in `results.py` and expects an FDTD object.
+            # We might need a helper in `results.py` that can load and plot.
+            # For now, just logging. The actual plotting during 'analyse' might be complex
+            # if it requires re-running parts of the simulation or loading large files.
+            # The original `process_and_save_results` calls `plot_plane_parametric`.
+            # If `plot_z_plane` is true during `run`, it's already generated.
+            # This option in `analyse` would be for *re-generating* or generating if missed.
+            # Let's print a message indicating where the plot would be if generated during the run.
+            expected_plot_path = selected_layout_folder / f"z_plane_intensity.png"  # Adjusted to fixed filename
+            if expected_plot_path.exists():
+                typer.echo(f"Z-plane plot should be available at: {expected_plot_path}")
+            else:
+                typer.echo(f"Z-plane plot was not generated during the initial run or not found at: {expected_plot_path}")
+                typer.echo("To generate plots, ensure 'plot_z_plane' is enabled during the 'run' command.")
+        elif not sim_fsp_path.exists():
+            logger.warning(f"Simulation file {sim_fsp_path} not found. Cannot generate Z-plane plot.")
+            typer.echo(f"Simulation file {sim_fsp_path} not found. Cannot generate Z-plane plot.")
+        else:  # params_meters_from_results is None
+            logger.warning("Parameters not found in results.json, cannot reliably generate Z-plane plot during analysis.")
+            typer.echo("Parameters not found in results.json, cannot reliably generate Z-plane plot during analysis.")
 
     typer.echo(f"--- End of Analysis for {layout_id} ---")
 

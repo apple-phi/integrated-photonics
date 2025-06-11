@@ -14,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 def plot_plane_parametric(fdtd_obj, title_prefix: str, layout_id: str, target_dir: pathlib.Path):
-    """Helper function to plot a 2D plane from the FDTD result and save it."""
+    """Helper function to plot a 2D plane from the FDTD result and save it.
+    The plot filename is fixed to 'z_plane_intensity.png'.
+    The layout_id is used in the plot title for identification.
+    """
     res_zplane = fdtd_obj.getresult("mon_zplane", "E")
     x = res_zplane["x"].flatten() * 1e6  # Convert to µm
     y = res_zplane["y"].flatten() * 1e6  # Convert to µm
@@ -31,12 +34,13 @@ def plot_plane_parametric(fdtd_obj, title_prefix: str, layout_id: str, target_di
     pcm = plt.pcolormesh(X, Y, Intensity, shading="auto", cmap="viridis")
     plt.xlabel("x (μm)")
     plt.ylabel("y (μm)")
-    plot_title = f"{title_prefix} - {layout_id}"
+    # layout_id here is the run_id (timestamped folder name) for title uniqueness
+    plot_title = f"{title_prefix} - Run {layout_id}"
     plt.title(plot_title)
     plt.colorbar(pcm, label="Intensity (a.u.)")
     plt.axis("equal")
 
-    plot_filename = f"z_plane_intensity_{layout_id}.png"
+    plot_filename = "z_plane_intensity.png"  # Fixed filename
     save_path = target_dir / plot_filename
     plt.savefig(save_path)
     logger.info(f"Saved z-plane plot to: {save_path}")
@@ -44,23 +48,25 @@ def plot_plane_parametric(fdtd_obj, title_prefix: str, layout_id: str, target_di
 
 
 def process_and_save_results(
-    sim_filepath: str,  # Full path to the .fsp file
+    sim_filepath: str,  # Full path to the .fsp file (e.g., .../sim_YYYYMMDD_HHMMSS_ffffff/simulation.fsp)
     params_dict: dict,  # Parameters used for this simulation (in meters)
-    output_dir: str,  # Directory where results.json and plots will be saved for this layout
+    output_dir: str,  # Directory where results.json and plots will be saved (e.g., .../sim_YYYYMMDD_HHMMSS_ffffff)
     plot_z_plane: bool = False,
 ):
     """Loads results from a Lumerical simulation, processes, and saves them
     to the specified output directory.
+    Assumes fixed filenames like 'results.json' and 'z_plane_intensity.png' within output_dir.
     """
     output_path = pathlib.Path(output_dir)
-    # layout_id is the stem of the simulation file (e.g., "wg1w0p5_wg2w0p5_...")
-    layout_id = pathlib.Path(sim_filepath).stem
+    # The unique identifier for the run (e.g., sim_YYYYMMDD_HHMMSS_ffffff) is the name of the output_dir itself.
+    run_id = output_path.name
 
-    logger.info(f"Processing results for layout: {layout_id} from file: {sim_filepath}")
+    logger.info(f"Processing results for run: {run_id} from file: {sim_filepath}")
     logger.info(f"Results will be saved in: {output_path}")
 
     results_data = {}
     results_data["parameters"] = params_dict
+    results_data["run_id"] = run_id  # Store run_id in results for traceability
 
     try:
         with lumapi.FDTD(hide=True) as fdtd:
@@ -68,26 +74,32 @@ def process_and_save_results(
 
             # Extract power transmission from mode expansion monitors
             res_me_tr_exp = fdtd.getresult("me_tr", "expansion for me_tr")
-            t_net_tr = res_me_tr_exp["T_net"].item() if "T_net" in res_me_tr_exp else float("nan")
+            # Use .item() to get scalar from 0-dim array, handle missing key gracefully
+            t_net_tr = res_me_tr_exp.get("T_net").item() if isinstance(res_me_tr_exp.get("T_net"), np.ndarray) and res_me_tr_exp.get("T_net").size == 1 else res_me_tr_exp.get("T_net", float("nan"))
+            if not isinstance(t_net_tr, (int, float)):
+                t_net_tr = float("nan")  # Ensure it's a number
             results_data["T_net_tr"] = t_net_tr
-            print(f"  me_tr mode expansion T_net: {t_net_tr:.4f}")
+            logger.info(f"  Run {run_id} - me_tr mode expansion T_net: {t_net_tr:.4f}")
 
             res_me_br_exp = fdtd.getresult("me_br", "expansion for me_br")
-            t_net_br = res_me_br_exp["T_net"].item() if "T_net" in res_me_br_exp else float("nan")
+            t_net_br = res_me_br_exp.get("T_net").item() if isinstance(res_me_br_exp.get("T_net"), np.ndarray) and res_me_br_exp.get("T_net").size == 1 else res_me_br_exp.get("T_net", float("nan"))
+            if not isinstance(t_net_br, (int, float)):
+                t_net_br = float("nan")  # Ensure it's a number
             results_data["T_net_br"] = t_net_br
-            print(f"  me_br mode expansion T_net: {t_net_br:.4f}")
+            logger.info(f"  Run {run_id} - me_br mode expansion T_net: {t_net_br:.4f}")
 
             if plot_z_plane:
                 plot_title_prefix = f"Z-plane E-field Intensity (tr={t_net_tr:.4f}, br={t_net_br:.4f})"
-                plot_plane_parametric(fdtd, title_prefix=plot_title_prefix, layout_id=layout_id, target_dir=pathlib.Path(output_dir))
+                # Pass run_id (folder name) as layout_id for plot title consistency
+                plot_plane_parametric(fdtd, title_prefix=plot_title_prefix, layout_id=run_id, target_dir=output_path)
 
     except Exception as e:
-        print(f"Error during Lumerical results processing for {layout_id}: {e}")
+        logger.error(f"Error during Lumerical results processing for run {run_id}: {e}")
         results_data["T_net_tr"] = float("nan")  # Indicate error in results
         results_data["T_net_br"] = float("nan")
         results_data["error"] = str(e)
 
-    results_json_path = output_path / "results.json"
+    results_json_path = output_path / "results.json"  # Fixed filename
     with open(results_json_path, "w", encoding="utf-8") as f_json:
         json.dump(results_data, f_json, indent=4)
-    logger.info(f"Saved detailed results to: {results_json_path}")
+    logger.info(f"Saved detailed results for run {run_id} to: {results_json_path}")

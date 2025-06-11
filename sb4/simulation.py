@@ -6,49 +6,85 @@ import sys
 import pathlib
 import numpy as np
 import logging
-import json  # Added for checking existing results
+import json
+from datetime import datetime  # For timestamp generation
+from typing import Tuple, Dict, Any, Optional  # For type hinting
+
 from .wrapper import lumapi, u, TE0, SiO2, Si, Xnorm, Ynorm, Znorm  # Importing constants and lumapi wrapper
-from .results import plot_plane_parametric, process_and_save_results
+from .results import process_and_save_results, plot_plane_parametric  # Ensure plot_plane_parametric is imported
 
 logger = logging.getLogger(__name__)  # Use a named logger
 
 
-def create_layout_id(params: dict, u_val: float = 1e-6) -> str:
-    """Creates a unique, filesystem-friendly ID from simulation parameters."""
-    # Scale back to nominal values for readability in dirname
-    # Ensure consistent order of parameters for consistent IDs
-    # Using fixed precision for float to string conversion
-    param_strs = []
-    # Define a specific order for parameters to ensure consistency
-    param_keys_ordered = [
-        "wg1_width",
-        "wg2_width",
-        "separation",
-        "coupling_length",
-        "wg_z_span",
-        "fan_out_y_offset",
-        "sbend_x_extent",
-        "center_wavelength",
-    ]
-    for key in param_keys_ordered:
-        if key in params:
-            value = params[key] / u_val
-            # Format to a reasonable number of decimal places, avoiding scientific notation for typical values
-            if isinstance(value, float):
-                # Use a format that handles integers and floats gracefully
-                param_strs.append(
-                    f"{key.replace('_width', 'w').replace('_length', 'len').replace('separation', 'sep').replace('wavelength', 'wl').replace('_', '').replace('center', 'c').replace('extent', 'ext').replace('offset', 'off')}{value:.3g}".replace(
-                        ".", "p"
-                    )
-                )
-            else:
-                param_strs.append(
-                    f"{key.replace('_width', 'w').replace('_length', 'len').replace('separation', 'sep').replace('wavelength', 'wl').replace('_', '').replace('center', 'c').replace('extent', 'ext').replace('offset', 'off')}{value}".replace(
-                        ".", "p"
-                    )
-                )
+def _find_existing_successful_run(output_base_dir: pathlib.Path, params_to_match: Dict[str, Any]) -> Tuple[Optional[pathlib.Path], Optional[Dict[str, Any]]]:
+    """Scans for an existing successfully completed run with matching parameters."""
+    if not output_base_dir.exists():
+        return None, None
 
-    return "_".join(param_strs)
+    for run_folder in output_base_dir.iterdir():
+        if not run_folder.is_dir():
+            continue
+
+        results_json_path = run_folder / "results.json"
+        if not results_json_path.exists():
+            continue
+
+        try:
+            with open(results_json_path, "r", encoding="utf-8") as f:
+                existing_results = json.load(f)
+
+            # Parameter comparison
+            if existing_results.get("parameters") != params_to_match:
+                continue
+
+            # Success criteria
+            is_successful = (
+                "error" not in existing_results
+                and "T_net_tr" in existing_results
+                and "T_net_br" in existing_results
+                and not np.isnan(existing_results.get("T_net_tr", float("nan")))
+                and not np.isnan(existing_results.get("T_net_br", float("nan")))
+            )
+
+            if is_successful:
+                return run_folder, existing_results
+            else:
+                logger.info(f"Found existing run in {run_folder} with matching parameters, but it was not successful or results are incomplete.")
+
+        except json.JSONDecodeError:
+            logger.warning(f"Could not decode results.json in {run_folder}. Skipping this folder.")
+        except Exception as e_check:
+            logger.warning(f"Error checking results in {run_folder}: {e_check}. Skipping this folder.")
+
+    return None, None
+
+
+def _handle_existing_run_plotting(run_folder: pathlib.Path, existing_results: Dict[str, Any], hide_fdtd_gui_for_plot: bool = True):
+    """Handles plotting for an existing run if the plot is missing."""
+    sim_fsp_path = run_folder / "simulation.fsp"
+    plot_png_path = run_folder / "z_plane_intensity.png"
+    existing_run_id = run_folder.name
+
+    if plot_png_path.exists():
+        logger.info(f"Plot already exists for existing run at {plot_png_path}")
+        return
+
+    if not sim_fsp_path.exists():
+        logger.warning(f"Simulation file {sim_fsp_path} not found for existing run {existing_run_id}. Cannot generate plot.")
+        return
+
+    logger.info(f"Plot not found for existing run {existing_run_id}. Generating plot at {plot_png_path}...")
+    try:
+        with lumapi.FDTD(hide=hide_fdtd_gui_for_plot) as fdtd_plot:
+            fdtd_plot.load(str(sim_fsp_path))
+            tr_val = existing_results.get("T_net_tr", float("nan"))
+            br_val = existing_results.get("T_net_br", float("nan"))
+            plot_title_prefix = f"Z-plane E-field Intensity (tr={tr_val:.4f}, br={br_val:.4f})"
+
+            plot_plane_parametric(fdtd_obj=fdtd_plot, title_prefix=plot_title_prefix, layout_id=existing_run_id, target_dir=run_folder)  # Pass folder name as layout_id for plot title consistency
+            logger.info(f"Generated plot for existing run at {plot_png_path}")
+    except Exception as e_plot:
+        logger.warning(f"Could not generate plot for existing run {existing_run_id}: {e_plot}")
 
 
 def add_rect(fdtd: lumapi.FDTD, name: str, xyz: tuple, span: tuple, material: str = Si):
@@ -70,70 +106,45 @@ def add_sbend(fdtd: lumapi.FDTD, name: str, wh: tuple, xyz: tuple, poles: list |
 def run_simulation(params: dict, output_base_dir: str = "task3", plot_z_plane_each_run: bool = False, hide_fdtd_gui: bool = False):
     """
     Sets up and runs a Lumerical FDTD simulation for a dual waveguide coupler
-    based on the provided parameters. Saves all outputs to a unique directory
-    per layout under output_base_dir. Skips simulation if valid results exist.
+    based on the provided parameters. Saves all outputs to a unique, timestamped
+    directory under output_base_dir. Checks for existing successful runs with
+    identical parameters before starting a new simulation.
 
     Args:
         params (dict): Dictionary of simulation parameters (in meters).
-        output_base_dir (str): Base directory where layout-specific folders will be created.
+        output_base_dir (str): Base directory where run-specific folders will be created.
         plot_z_plane_each_run (bool): Whether to generate and save z-plane plot.
         hide_fdtd_gui (bool): Whether to hide the Lumerical FDTD CAD window.
     """
-    layout_id = create_layout_id(params, u_val=u)
-    logger.info(f"Generated layout ID: {layout_id}")
 
-    layout_output_dir = pathlib.Path(output_base_dir) / layout_id
-    layout_output_dir.mkdir(parents=True, exist_ok=True)
-    logger.info(f"Output directory for this layout: {layout_output_dir}")
+    # 1. Check for existing successful runs with matching parameters
+    base_path = pathlib.Path(output_base_dir)
+    existing_run_folder, existing_run_results = _find_existing_successful_run(base_path, params)
 
-    sim_filepath = layout_output_dir / f"{layout_id}.fsp"
-    results_json_path = layout_output_dir / "results.json"
+    if existing_run_folder and existing_run_results:
+        existing_run_id = existing_run_folder.name
+        logger.info(f"Found existing successful run ({existing_run_id}) with matching parameters in: {existing_run_folder}")
+        print(f"Skipping simulation: Found existing successful run ({existing_run_id}) with matching parameters in {existing_run_folder}")
 
-    # Check if valid results already exist
-    if results_json_path.exists():
-        try:
-            with open(results_json_path, "r", encoding="utf-8") as f:
-                existing_results = json.load(f)
-            # Define what constitutes "valid" results (e.g., has expected keys, no error field)
-            if "T_net_tr" in existing_results and "T_net_br" in existing_results and "error" not in existing_results:
-                logger.info(f"Valid results found at {results_json_path}. Skipping simulation for layout {layout_id}.")
-                # Optionally, regenerate plot if requested and not present, or if forced
-                if plot_z_plane_each_run:
-                    plot_filename = f"z_plane_intensity_{layout_id}.png"
-                    plot_save_path = layout_output_dir / plot_filename
-                    if not plot_save_path.exists():
-                        logger.info(f"Plot {plot_filename} not found. Generating from existing simulation file: {sim_filepath}")
-                        if sim_filepath.exists():
-                            try:
-                                with lumapi.FDTD(hide=True) as fdtd:  # Use hide=True for consistency
-                                    fdtd.load(str(sim_filepath))
-                                    # Ensure params_dict is available for plot_plane_parametric if needed by title
-                                    # For now, title prefix is simple
-                                    plot_title_prefix = f"Z-plane E-field Intensity (tr={existing_results.get('T_net_tr', float('nan')):.4f}, br={existing_results.get('T_net_br', float('nan')):.4f})"
-                                    plot_plane_parametric(
-                                        fdtd,
-                                        title_prefix=plot_title_prefix,
-                                        layout_id=layout_id,  # Use layout_id as run_id for plotting
-                                        target_dir=layout_output_dir,
-                                    )
-                            except Exception as e_plot:
-                                logger.warning(f"Could not generate plot for existing results: {e_plot}")
-                        else:
-                            logger.warning(f"Simulation file {sim_filepath} not found. Cannot generate plot.")
-                    else:
-                        logger.info(f"Plot {plot_filename} already exists.")
+        if plot_z_plane_each_run:
+            _handle_existing_run_plotting(existing_run_folder, existing_run_results, hide_fdtd_gui_for_plot=True)
+        return  # Skip new simulation
 
-                # Ensure results are "processed" in terms of logging, even if loaded from file
-                logger.info(f"Loaded existing results for {layout_id}: TR={existing_results.get('T_net_tr', 'N/A')}, BR={existing_results.get('T_net_br', 'N/A')}")
-                return  # Exit early as simulation is skipped
-            else:
-                logger.info(f"Existing results.json at {results_json_path} is incomplete or indicates a previous error. Rerunning simulation.")
-        except json.JSONDecodeError:
-            logger.warning(f"Could not decode existing results.json at {results_json_path}. Rerunning simulation.")
-        except Exception as e_check:
-            logger.warning(f"Error checking existing results at {results_json_path}: {e_check}. Rerunning simulation.")
+    # 2. If no matching successful run is found, proceed with new simulation
+    run_id = f"sim_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
+    logger.info(f"Generated new run ID: {run_id}")
 
-    logger.info(f"Starting simulation for layout: {layout_id} with parameters: {params}")
+    current_run_output_dir = pathlib.Path(output_base_dir) / run_id
+    current_run_output_dir.mkdir(parents=True, exist_ok=True)
+    logger.info(f"Output directory for this run: {current_run_output_dir}")
+
+    # Use fixed filenames within the run-specific directory
+    sim_filepath = current_run_output_dir / "simulation.fsp"
+    # results.json will be created by process_and_save_results in current_run_output_dir
+
+    # Removed the block for checking existing results. Each call creates a new run.
+
+    logger.info(f"Starting simulation for run: {run_id} with parameters: {params}")
 
     wg1_w = params["wg1_width"]
     wg2_w = params["wg2_width"]
@@ -313,34 +324,32 @@ def run_simulation(params: dict, output_base_dir: str = "task3", plot_z_plane_ea
             fdtd.addmodeexpansion(name="me_br", mode_selection=TE0, monitor_type=Xnorm, x=mon_pos_right_x, y=io_wg_bottom_y_abs, z=0, y_span=mon_y_span, z_span=mon_z_span)
             fdtd.setexpansion("me_br", "mon_br")
 
-            print(f"Saving simulation file to: {sim_filepath}")
+            logger.info(f"Saving simulation file to: {sim_filepath}")
             fdtd.save(str(sim_filepath))
 
-            print(f"Running simulation for {layout_id}...")
+            logger.info(f"Running simulation for {run_id}...")
             fdtd.run()
-            logger.info(f"Simulation {layout_id} finished.")
+            logger.info(f"Simulation {run_id} finished.")
 
-            # --- Process Results ---
-            # This call will now happen *after* the FDTD context manager closes,
-            # ensuring the .fsp file is fully written and closed by Lumerical.
-            # The process_and_save_results function will reopen it.
+            # --- End of Core Lumerical Simulation Setup and Execution ---
 
     except Exception as e:
-        logger.error(f"Error during Lumerical FDTD setup or run for {layout_id}: {e}")
-        # Save error information to results.json
-        error_results = {"parameters": params, "error": str(e)}
-        with open(results_json_path, "w", encoding="utf-8") as f_err:
-            json.dump(error_results, f_err, indent=4)
-        logger.info(f"Error details saved to {results_json_path}")
+        logger.error(f"Error during Lumerical FDTD setup or run for {run_id}: {e}")
+        # Save error information to a results.json in the run directory
+        error_results_path = current_run_output_dir / "results.json"
+        error_data = {"parameters": params, "error": str(e), "run_id": run_id}
+        with open(error_results_path, "w", encoding="utf-8") as f_err:
+            json.dump(error_data, f_err, indent=4)
+        logger.info(f"Error details saved to {error_results_path}")
         return  # Stop further processing for this run
 
     # Call process_and_save_results outside the FDTD try/except block
     # It will handle its own Lumerical session for loading results.
-    logger.info(f"Proceeding to process and save results for {layout_id}.")
+    logger.info(f"Proceeding to process and save results for run {run_id}.")
     process_and_save_results(
         sim_filepath=str(sim_filepath),
         params_dict=params,  # Pass original params (in meters)
-        output_dir=str(layout_output_dir),  # Pass the specific dir for this layout's results
+        output_dir=str(current_run_output_dir),  # Pass the specific dir for this run's results
         plot_z_plane=plot_z_plane_each_run,
     )
-    logger.info(f"Finished processing and saving results for {layout_id}.")
+    logger.info(f"Finished processing and saving results for run {run_id}.")
