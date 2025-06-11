@@ -1,29 +1,18 @@
 """sb4: Command-line interface for Lumerical FDTD simulations."""
 
-import rich.logging
+import rich.pretty
 import typer
 import pathlib
-import os
 import json
 import logging
 from typing_extensions import Annotated
-from typing import Optional, List, Dict, Any  # Added List, Dict, Any
+from typing import Optional, List, Dict, Any
 import questionary
-import datetime
 
-from sb4.simulation import run_simulation, u, create_layout_id  # Added create_layout_id
-from sb4.results import (
-    process_and_save_results,
-    plot_plane_parametric,
-)  # Added plot_plane_parametric
+from sb4.wrapper import lumapi
+from sb4.simulation import run_simulation, u, create_layout_id
+from sb4.results import process_and_save_results, plot_plane_parametric
 
-FORMAT = "%(message)s"
-logging.basicConfig(
-    level="INFO",
-    format=FORMAT,
-    datefmt="[%X]",
-    handlers=[rich.logging.RichHandler(markup=True)],
-)
 logger = logging.getLogger(__name__)
 
 app = typer.Typer(
@@ -42,51 +31,23 @@ DEFAULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 @app.command()
 @app.command("r", hidden=True)
 def run(
-    wg1_width: Annotated[
-        float, typer.Option(help="Width of the top waveguide (microns).")
-    ] = 0.5,
-    wg2_width: Annotated[
-        float, typer.Option(help="Width of the bottom waveguide (microns).")
-    ] = 0.5,
-    separation: Annotated[
-        float, typer.Option(help="Edge-to-edge separation (microns).")
-    ] = 0.15,
-    coupling_length: Annotated[
-        float, typer.Option(help="Length of coupling section (microns).")
-    ] = 10.0,
-    wg_z_span: Annotated[
-        float, typer.Option(help="Thickness of waveguides (microns).")
-    ] = 0.22,
-    fan_out_y_offset: Annotated[
-        float, typer.Option(help="S-bend fan-out Y-offset (microns).")
-    ] = 5.0,
-    sbend_x_extent: Annotated[
-        float, typer.Option(help="S-bend X-extent (microns).")
-    ] = 10.0,
-    center_wavelength: Annotated[
-        float, typer.Option(help="Center wavelength (microns).")
-    ] = 1.55,
-    monitor_offset_from_sbend: Annotated[
-        float, typer.Option(help="Monitor X-offset from S-bend end (microns).")
-    ] = 2.5,
-    fdtd_xy_padding: Annotated[
-        float, typer.Option(help="FDTD XY padding (microns).")
-    ] = 2.5,
-    wg_extension_past_fdtd_edge: Annotated[
-        float, typer.Option(help="WG extension beyond FDTD edge (microns).")
-    ] = 1.0,
+    wg1_width: Annotated[float, typer.Option(help="Width of the top waveguide (microns).")] = 0.5,
+    wg2_width: Annotated[float, typer.Option(help="Width of the bottom waveguide (microns).")] = 0.5,
+    separation: Annotated[float, typer.Option(help="Edge-to-edge separation (microns).")] = 0.15,
+    coupling_length: Annotated[float, typer.Option(help="Length of coupling section (microns).")] = 10.0,
+    wg_z_span: Annotated[float, typer.Option(help="Thickness of waveguides (microns).")] = 0.22,
+    fan_out_y_offset: Annotated[float, typer.Option(help="S-bend fan-out Y-offset (microns).")] = 5.0,
+    sbend_x_extent: Annotated[float, typer.Option(help="S-bend X-extent (microns).")] = 10.0,
+    center_wavelength: Annotated[float, typer.Option(help="Center wavelength (microns).")] = 1.55,
+    monitor_offset_from_sbend: Annotated[float, typer.Option(help="Monitor X-offset from S-bend end (microns).")] = 2.5,
+    fdtd_xy_padding: Annotated[float, typer.Option(help="FDTD XY padding (microns).")] = 2.5,
+    wg_extension_past_fdtd_edge: Annotated[float, typer.Option(help="WG extension beyond FDTD edge (microns).")] = 1.0,
     output_dir: Annotated[
         pathlib.Path,
-        typer.Option(
-            help="Base directory for simulation outputs (layout-specific folders will be created here)."
-        ),
+        typer.Option(help="Base directory for simulation outputs (layout-specific folders will be created here)."),
     ] = DEFAULT_OUTPUT_DIR,
-    plot_z_plane: Annotated[
-        bool, typer.Option(help="Plot Z-plane intensity after simulation.")
-    ] = False,
-    show_gui: Annotated[
-        bool, typer.Option(help="Show Lumerical FDTD CAD window during simulation.")
-    ] = True,
+    plot_z_plane: Annotated[bool, typer.Option(help="Plot Z-plane intensity after simulation.")] = False,
+    show_gui: Annotated[bool, typer.Option(help="Show Lumerical FDTD CAD window during simulation.")] = True,
     # Removed run_id, sim_dir, results_dir as they are now handled internally by layout_id and output_dir
 ):
     """
@@ -108,19 +69,16 @@ def run(
         "fdtd_xy_padding": fdtd_xy_padding,
         "wg_extension_past_fdtd_edge": wg_extension_past_fdtd_edge,
     }
+    logger.info("Running simulation with parameters (microns):")
+    rich.pretty.pprint(params_microns, max_length=80, expand_all=True)
+
     params_meters = {key: value * u for key, value in params_microns.items()}
 
     layout_id = create_layout_id(params_meters, u_val=u)
     logger.info(f"Target layout ID: {layout_id}")
-    logger.info(f"Parameters (microns): {params_microns}")
     logger.info(f"Output base directory: {output_dir}")
 
-    run_simulation(
-        params=params_meters,
-        output_base_dir=str(output_dir),
-        plot_z_plane_each_run=plot_z_plane,
-        hide_fdtd_gui=not show_gui,
-    )
+    run_simulation(params=params_meters, output_base_dir=str(output_dir), plot_z_plane_each_run=plot_z_plane, hide_fdtd_gui=not show_gui)
     # The run_simulation function now handles skipping and also calls results processing internally.
     logger.info(f"Simulation and processing for layout {layout_id} finished.")
 
@@ -130,15 +88,11 @@ def run(
 def analyse_results(
     output_dir: Annotated[
         pathlib.Path,
-        typer.Option(
-            help="Base directory containing layout-specific simulation output folders."
-        ),
+        typer.Option(help="Base directory containing layout-specific simulation output folders."),
     ] = DEFAULT_OUTPUT_DIR,
     plot_z_plane: Annotated[
         bool,
-        typer.Option(
-            help="Generate/regenerate Z-plane intensity plot during analysis."
-        ),
+        typer.Option(help="Generate/regenerate Z-plane intensity plot during analysis."),
     ] = True,
 ):
     """
@@ -159,9 +113,7 @@ def analyse_results(
         raise typer.Exit(code=1)
 
     # Sort folders by modification time of their results.json, most recent first
-    layout_folders.sort(
-        key=lambda x: (x / "results.json").stat().st_mtime, reverse=True
-    )
+    layout_folders.sort(key=lambda x: (x / "results.json").stat().st_mtime, reverse=True)
 
     choices = []
     for folder in layout_folders:
@@ -201,9 +153,7 @@ def analyse_results(
     logger.info(f"Analysing layout: {layout_id} in folder: {selected_layout_folder}")
 
     if not results_json_path.exists():
-        logger.error(
-            f"Critical: results.json not found in {selected_layout_folder}, though it was expected."
-        )
+        logger.error(f"Critical: results.json not found in {selected_layout_folder}, though it was expected.")
         typer.echo(f"Error: results.json missing in {selected_layout_folder}.")
         raise typer.Exit(code=1)
 
@@ -211,7 +161,7 @@ def analyse_results(
         results_data = json.load(f)
 
     typer.echo(f"\n--- Results for Layout: {layout_id} ---")
-    typer.echo(json.dumps(results_data, indent=2))
+    rich.pretty.pprint(results_data, max_length=80, expand_all=True)
 
     # Parameters are stored in results_data["parameters"] in units of meters
     params_meters_from_results = results_data.get("parameters")
@@ -224,56 +174,31 @@ def analyse_results(
             logger.info(f"Plot {plot_filename} already exists at {plot_save_path}.")
             typer.echo(f"Plot available at: {plot_save_path}")
         elif sim_fsp_path.exists() and params_meters_from_results:
-            logger.info(
-                f"Plot {plot_filename} not found. Generating from: {sim_fsp_path}"
-            )
-            try:
-                # Need lumapi for plotting if we regenerate it here
-                import lumapi  # Ensure lumapi is available in this scope if not already
-
-                with lumapi.FDTD(hide=True) as fdtd:
-                    fdtd.load(str(sim_fsp_path))
-                    # Check if mon_zplane exists in the loaded simulation
-                    if not fdtd.getnamed("mon_zplane"):
-                        logger.warning(
-                            "'mon_zplane' monitor not found in the .fsp file. Cannot generate plot."
-                        )
-                        typer.echo(
-                            "Warning: 'mon_zplane' monitor not found in the .fsp file. Cannot generate plot."
-                        )
-                    else:
-                        # Use results from JSON for title consistency
-                        tr_val = results_data.get("T_net_through_TL", float("nan"))
-                        bl_val = results_data.get("T_net_coupled_BL", float("nan"))
-                        plot_title_prefix = f"Z-plane E-field Intensity (TL={tr_val:.4f}, BL={bl_val:.4f})"
-                        plot_plane_parametric(
-                            fdtd_obj=fdtd,
-                            title_prefix=plot_title_prefix,
-                            layout_id=layout_id,
-                            target_dir=selected_layout_folder,
-                        )
-                        typer.echo(f"Generated plot: {plot_save_path}")
-
-            except ImportError:
-                logger.error("Lumerical API (lumapi) not found. Cannot generate plot.")
-                typer.echo("Error: Lumerical API not found. Plot generation failed.")
-            except Exception as e_plot:
-                logger.error(f"Could not generate plot for {layout_id}: {e_plot}")
-                typer.echo(f"Error generating plot: {e_plot}")
+            logger.info(f"Plot {plot_filename} not found. Generating from: {sim_fsp_path}")
+            with lumapi.FDTD(hide=True) as fdtd:
+                fdtd.load(str(sim_fsp_path))
+                # Check if mon_zplane exists in the loaded simulation
+                if not fdtd.getnamed("mon_zplane"):
+                    logger.warning("'mon_zplane' monitor not found in the .fsp file. Cannot generate plot.")
+                    typer.echo("Warning: 'mon_zplane' monitor not found in the .fsp file. Cannot generate plot.")
+                else:
+                    # Use results from JSON for title consistency
+                    tr_val = results_data.get("T_net_through_TL", float("nan"))
+                    bl_val = results_data.get("T_net_coupled_BL", float("nan"))
+                    plot_title_prefix = f"Z-plane E-field Intensity (TL={tr_val:.4f}, BL={bl_val:.4f})"
+                    plot_plane_parametric(
+                        fdtd_obj=fdtd,
+                        title_prefix=plot_title_prefix,
+                        layout_id=layout_id,
+                        target_dir=selected_layout_folder,
+                    )
+                    typer.echo(f"Generated plot: {plot_save_path}")
         elif not params_meters_from_results:
-            logger.warning(
-                f"Parameters not found in results.json. Cannot reliably (re)generate plot for {layout_id}."
-            )
-            typer.echo(
-                "Warning: Parameters missing in results.json, cannot generate plot."
-            )
+            logger.warning(f"Parameters not found in results.json. Cannot reliably (re)generate plot for {layout_id}.")
+            typer.echo("Warning: Parameters missing in results.json, cannot generate plot.")
         else:
-            logger.warning(
-                f"Simulation file {sim_fsp_path} not found. Cannot generate plot for {layout_id}."
-            )
-            typer.echo(
-                f"Warning: Simulation file {sim_fsp_path.name} missing, cannot generate plot."
-            )
+            logger.warning(f"Simulation file {sim_fsp_path} not found. Cannot generate plot for {layout_id}.")
+            typer.echo(f"Warning: Simulation file {sim_fsp_path.name} missing, cannot generate plot.")
 
     typer.echo(f"--- End of Analysis for {layout_id} ---")
 

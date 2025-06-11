@@ -8,14 +8,12 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
-from wrapper import lumapi, u
+from .wrapper import lumapi, u
 
 logger = logging.getLogger(__name__)
 
 
-def plot_plane_parametric(
-    fdtd_obj, title_prefix: str, layout_id: str, target_dir: pathlib.Path
-):
+def plot_plane_parametric(fdtd_obj, title_prefix: str, layout_id: str, target_dir: pathlib.Path):
     """Helper function to plot a 2D plane from the FDTD result and save it."""
     res_zplane = fdtd_obj.getresult("mon_zplane", "E")
     x = res_zplane["x"].flatten() * 1e6  # Convert to µm
@@ -70,33 +68,18 @@ def process_and_save_results(
 
             # Extract power transmission from mode expansion monitors
             res_me_tr_exp = fdtd.getresult("me_tr", "expansion for me_tr")
-            t_net_tr = (
-                res_me_tr_exp["T_net"].item()
-                if "T_net" in res_me_tr_exp
-                else float("nan")
-            )
+            t_net_tr = res_me_tr_exp["T_net"].item() if "T_net" in res_me_tr_exp else float("nan")
             results_data["T_net_tr"] = t_net_tr
             print(f"  me_tr mode expansion T_net: {t_net_tr:.4f}")
 
             res_me_br_exp = fdtd.getresult("me_br", "expansion for me_br")
-            t_net_br = (
-                res_me_br_exp["T_net"].item()
-                if "T_net" in res_me_br_exp
-                else float("nan")
-            )
+            t_net_br = res_me_br_exp["T_net"].item() if "T_net" in res_me_br_exp else float("nan")
             results_data["T_net_br"] = t_net_br
             print(f"  me_br mode expansion T_net: {t_net_br:.4f}")
 
             if plot_z_plane:
-                plot_title_prefix = (
-                    f"Z-plane E-field Intensity (tr={t_net_tr:.4f}, br={t_net_br:.4f})"
-                )
-                plot_plane_parametric(
-                    fdtd,
-                    title_prefix=plot_title_prefix,
-                    layout_id=layout_id,
-                    target_dir=pathlib.Path(output_dir),
-                )
+                plot_title_prefix = f"Z-plane E-field Intensity (tr={t_net_tr:.4f}, br={t_net_br:.4f})"
+                plot_plane_parametric(fdtd, title_prefix=plot_title_prefix, layout_id=layout_id, target_dir=pathlib.Path(output_dir))
 
     except Exception as e:
         print(f"Error during Lumerical results processing for {layout_id}: {e}")
@@ -108,5 +91,3 @@ def process_and_save_results(
     with open(results_json_path, "w", encoding="utf-8") as f_json:
         json.dump(results_data, f_json, indent=4)
     logger.info(f"Saved detailed results to: {results_json_path}")
-
-    # Summary CSV is removed. Each layout folder has its own results.json.

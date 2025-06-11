@@ -18,3 +18,9 @@ import lumapi as lumapi_raw  # type: ignore[import-untyped]
 
 lumapi = lumapi_raw  # For compatibility with existing code
 u = 1e-6  # Micrometer unit for convenience
+TE0 = "fundamental TE mode"
+SiO2 = "SiO2 (Glass) - Palik"
+Si = "Si (Silicon) - Palik"
+Xnorm = "2D X-normal"
+Ynorm = "2D Y-normal"
+Znorm = "2D Z-normal"
