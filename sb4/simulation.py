@@ -81,7 +81,7 @@ def _handle_existing_run_plotting(run_folder: pathlib.Path, existing_results: Di
             br_val = existing_results.get("T_net_br", float("nan"))
             plot_title_prefix = f"Z-plane E-field Intensity (tr={tr_val:.4f}, br={br_val:.4f})"
 
-            plot_plane_parametric(fdtd_obj=fdtd_plot, title_prefix=plot_title_prefix, layout_id=existing_run_id, target_dir=run_folder)  # Pass folder name as layout_id for plot title consistency
+            plot_plane_parametric(fdtd_obj=fdtd_plot, title_prefix=plot_title_prefix, target_dir=run_folder)  # Pass folder name as layout_id for plot title consistency
             logger.info(f"Generated plot for existing run at {plot_png_path}")
     except Exception as e_plot:
         logger.warning(f"Could not generate plot for existing run {existing_run_id}: {e_plot}")

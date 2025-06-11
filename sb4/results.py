@@ -13,10 +13,9 @@ from .wrapper import lumapi, u
 logger = logging.getLogger(__name__)
 
 
-def plot_plane_parametric(fdtd_obj, title_prefix: str, layout_id: str, target_dir: pathlib.Path):
+def plot_plane_parametric(fdtd_obj, title_prefix: str, target_dir: pathlib.Path):
     """Helper function to plot a 2D plane from the FDTD result and save it.
     The plot filename is fixed to 'z_plane_intensity.png'.
-    The layout_id is used in the plot title for identification.
     """
     res_zplane = fdtd_obj.getresult("mon_zplane", "E")
     x = res_zplane["x"].flatten() * 1e6  # Convert to µm
@@ -34,11 +33,11 @@ def plot_plane_parametric(fdtd_obj, title_prefix: str, layout_id: str, target_di
     pcm = plt.pcolormesh(X, Y, Intensity, shading="auto", cmap="viridis")
     plt.xlabel("x (μm)")
     plt.ylabel("y (μm)")
-    # layout_id here is the run_id (timestamped folder name) for title uniqueness
-    plot_title = f"{title_prefix} - Run {layout_id}"
+    plot_title = title_prefix  # Removed run_id from title
     plt.title(plot_title)
     plt.colorbar(pcm, label="Intensity (a.u.)")
-    plt.axis("equal")
+    plt.gca().set_aspect('auto') # Ensure plot fills axes
+    plt.tight_layout() # Adjust layout to prevent overlap
 
     plot_filename = "z_plane_intensity.png"  # Fixed filename
     save_path = target_dir / plot_filename
@@ -91,7 +90,7 @@ def process_and_save_results(
             if plot_z_plane:
                 plot_title_prefix = f"Z-plane E-field Intensity (tr={t_net_tr:.4f}, br={t_net_br:.4f})"
                 # Pass run_id (folder name) as layout_id for plot title consistency
-                plot_plane_parametric(fdtd, title_prefix=plot_title_prefix, layout_id=run_id, target_dir=output_path)
+                plot_plane_parametric(fdtd, title_prefix=plot_title_prefix, target_dir=output_path)
 
     except Exception as e:
         logger.error(f"Error during Lumerical results processing for run {run_id}: {e}")
