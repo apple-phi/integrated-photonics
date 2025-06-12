@@ -250,7 +250,10 @@ def sweep(
     is_duplicate = False
     for existing_sweep in manifest_data:
         # Compare based on the defining string parameters and match_widths
-        if all(existing_sweep.get(k) == current_sweep_config[k] for k in ["wg1_width_str", "wg2_width_str", "separation_str", "coupling_length_str", "center_wavelength_str", "match_widths"]):
+        if all(
+            existing_sweep["params_input"].get(k) == current_sweep_config["params_input"].get(k)
+            for k in ["wg1_width", "wg2_width", "separation", "coupling_length", "center_wavelength", "match_widths"]
+        ):
             is_duplicate = True
             logger.info(
                 f"This sweep configuration already exists in {SWEEP_MANIFEST_PATH} (Index {manifest_data.index(existing_sweep)}: '{existing_sweep.get('description')}'). It will not be added again."

@@ -1,0 +1,18 @@
+{
+    "parameters": {
+        "wg1_width": 0.3,
+        "wg2_width": 0.3,
+        "separation": 0.15,
+        "coupling_length": 0.0,
+        "center_wavelength": 1.55,
+        "wg_z_span": 0.22,
+        "fan_out_y_offset": 5.0,
+        "sbend_x_extent": 10.0,
+        "monitor_offset_from_sbend": 2.5,
+        "fdtd_xy_padding": 2.5,
+        "wg_extension_past_fdtd_edge": 1.0
+    },
+    "run_id": "sim_1944_120625",
+    "T_net_tr": 0.12155304110745328,
+    "T_net_br": 0.8139423915348146
+}

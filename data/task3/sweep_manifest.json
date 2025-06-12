@@ -48,5 +48,38 @@
         },
         "match_widths": false,
         "description": "Sweep sep"
+    },
+    {
+        "params_input": {
+            "wg1_width": "0.3",
+            "wg2_width": "0.3",
+            "separation": "0.15",
+            "coupling_length": "0:30:10",
+            "center_wavelength": "1.55"
+        },
+        "match_widths": false,
+        "description": "Sweep cl"
+    },
+    {
+        "params_input": {
+            "wg1_width": "0.4",
+            "wg2_width": "0.4",
+            "separation": "0.15",
+            "coupling_length": "0:30:10",
+            "center_wavelength": "1.55"
+        },
+        "match_widths": false,
+        "description": "Sweep: coupling_length=0:30:10 wg1_width=0.4 wg2_width=0.4 separation=0.15 center_wavelength=1.55"
+    },
+    {
+        "params_input": {
+            "wg1_width_str": "0.4",
+            "wg2_width_str": "0.4",
+            "separation_str": "0.15",
+            "coupling_length_str": "0:30:15",
+            "center_wavelength_str": "1.31"
+        },
+        "match_widths": false,
+        "description": "Sweep: coupling_length=0:30:15 wg1_width=0.4 wg2_width=0.4 separation=0.15 center_wavelength=1.31"
     }
 ]
