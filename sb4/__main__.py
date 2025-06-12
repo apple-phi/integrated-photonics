@@ -138,6 +138,7 @@ def sweep(
     ] = DEFAULT_OUTPUT_DIR,
     plot_z_plane: Annotated[bool, typer.Option(help="Plot Z-plane intensity after each simulation run.")] = True,
     show_gui: Annotated[bool, typer.Option(help="Show Lumerical FDTD CAD window during simulation runs.")] = True,
+    match_widths: Annotated[bool, typer.Option(help="If true the waveguide widths will be matched (wg1_width = wg2_width). You must ensure you pass the same parameters for both waveguides.")] = False,
 ):
     """
     Run a sweep of Lumerical FDTD simulations by varying one or more user-configurable parameters.
@@ -161,6 +162,10 @@ def sweep(
     Each combination of swept parameters results in an independent simulation run,
     saved in a unique timestamped folder (sim_HHMM_DDMMYY) under `output_dir`.
     """
+    if match_widths and wg1_width_str != wg2_width_str:
+        logger.warning("match_widths is enabled but wg1_width_str and wg2_width_str are not the same. They will be set to the same value.")
+        wg2_width_str = wg1_width_str
+
     param_inputs = {
         "wg1_width": wg1_width_str,
         "wg2_width": wg2_width_str,
@@ -200,6 +205,9 @@ def sweep(
 
     for i, combo_values in enumerate(all_combinations):
         current_params_microns = dict(zip(sweep_param_names, combo_values))
+        if match_widths:
+            if current_params_microns["wg1_width"] != current_params_microns["wg2_width"]:
+                continue  # Skip this combo if widths do not match
         current_params_microns.update(fixed_params)  # Add fixed parameters
 
         logger.info(f"--- Starting Sweep Run {i+1}/{total_runs} ---")
