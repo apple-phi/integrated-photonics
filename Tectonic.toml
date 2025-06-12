@@ -11,3 +11,8 @@ type = "pdf"
 name = "task2"
 index = "task2.tex"
 type = "pdf"
+
+[[output]]
+name = "task3"
+index = "task3.tex"
+type = "pdf"

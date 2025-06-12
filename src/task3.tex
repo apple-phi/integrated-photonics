@@ -1,0 +1,165 @@
+\documentclass[10pt, a4paper]{article}
+
+% \usepackage[mathdisplays=normal]{savetrees}
+
+% Core packages for better typography
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+% \usepackage{newtxtext,newtxmath}
+\usepackage{latexsym,amsfonts,amssymb,amsthm,amsmath}
+\usepackage{mathtools}
+\usepackage{textcomp}
+\usepackage{microtype}
+\usepackage{setspace}
+\usepackage{siunitx}
+\DeclareSIUnit{\um}{\ensuremath{\mu}\mathrm{m}}
+% \onehalfspacing
+
+% Math packages with better formatting
+
+% Graphics and figures
+\usepackage{tikz}
+\usetikzlibrary{angles,quotes}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usepackage{graphicx}
+\graphicspath{{../data/}}
+
+% Better table formatting
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% Force figures to stay in their sections
+\usepackage[section]{placeins}
+\makeatletter
+\AtBeginDocument{%
+  \expandafter\renewcommand\expandafter\subsection\expandafter{%
+    \expandafter\@fb@secFB\subsection
+  }%
+}
+\makeatother
+
+% Code listing formatting
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},   
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{blue},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+\lstset{style=mystyle}
+
+% References and hyperlinks
+\usepackage{pdfpages}
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue]{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{csquotes}
+\usepackage[notes, backend=bibtex]{biblatex-chicago}
+\addbibresource{refs.bib}
+
+
+
+% Custom theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}{Example}[section]
+
+\title{\Large \bfseries SB4: Integrated Photonics\\[0.5em] \large Final Report}
+\author{Lucas Ng\thanks{ln373@cam.ac.uk}}
+\date{13th June 2025}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+In the first interim report, we performed modal analysis on a symmetric planar waveguide
+of several core and cladding materials, with further investigation into the effects of waveguide geometry and modal excitation wavelength on the modal properties,
+including the effective index, group index, birefringence, and dispersion characteristics.
+
+The second interim report recognised that waveguides do not exist in isolation,
+and presented the coupled mode theory as a framework for understanding the power transfer in coupled waveguides,
+with a derivation via considering the coupled mode propagation matrix,
+\[
+\mathbf{M} = \begin{pmatrix}
+\beta & \kappa \\
+\kappa & \beta
+\end{pmatrix},
+\]
+to be the infinitessimal generator matrix that generates the modal evolution transition matrix as 
+a one-parameter subgroup of the Lie group \(GL(2, \mathbb{C})\)
+via the exponential map \(-jzM\mapsto e^{-jzM}\) (where \(z\) is the propagation distance along the waveguide)
+that acts on an element of the Lie algebra \(\mathfrak{gl}(2, \mathbb{C})\).
+This formalism demonstrated how the intrisic structure of \(M\) gives rise to the modal properties of the coupled waveguide:
+the symmetry of the matrix \(M\) gives rise to reciprocal coupling,
+while real-valued \(\beta\) and \(\kappa\) encodes the conservation of power in the coupled waveguide,
+since in this instance, \(-jzM\) is Hermitian, and thus the image of the exponential map is unitary.
+
+Likewise, this current, final report, ascends to the next level of abstraction,
+\textit{\'a la mise en abyme},
+considering the whole structure of a S-bend directional coupler in its entirety.
+At this level, the previous theoretical frameworks serve purely as approximation,
+and we must account for bending losses, asymmetric couplers, and other practical and interesting considerations.
+This being analytically intractable, Lumerical's FDTD software\autocite{lumerical_fdtd} was utilised to simulate the directional coupler.
+
+\section{Simulation setup}
+
+The geometry of our directional coupler is the traditional doubly-symmetric S-bend design,
+with a parallel coupling length connected in each waveguide to its input and output ports by S-bends.
+Each port is extended by a straight waveguide which extends through to \SI{1}{\um} outside the FDTD simulation region,
+which is otherwise internally padded on all sides by \SI{2.5}{\um} of perfectly matched layer (PML) boundary conditions.
+The input port of the upper waveguide is excited by a modal source at the wavelength of interest.
+
+This form of the directional coupler is, by way of metaphor, structured as an aubade.
+It is parameterised by the widths of each waveguide (which may be varied independently),
+the separation gap between the two waveguides, the length of the coupling region,
+and the wavelength of the modal source.
+The waveguide material is silicon with a cladding of silicon dioxide,
+with wavelength-dependent refractive indices taken from the \texttt{Si (Silicon) - Palik}
+and \texttt{SiO2 (Glass) - Palik} entries of the Lumerical material database respectively.
+The waveguide depth into the plane is \SI{220}{\nm} for both waveguides,
+the ports on each end are separated by \SI{10}{\um} in the horizontal direction,
+and the poles of the S-bends are at \([(0,0), (5, 0), (\pm 5, \mp 5), (\pm 5, \mp 5)]\)\unit{\um}.
+
+% TODO: Add a figure of the S-bend directional coupler geometry.
+
+\section{Results}
+\subsection{Equal power-splitting}
+
+\subsection{Total power transfer}
+
+\paragraph{At a wavelength of \(\lambda=\SI{1550}{\nm}\)}
+
+\paragraph{At a wavelength of \(\lambda=\SI{1310}{\nm}\)}
+
+\subsection{Unequal waveguide widths}
+
+\section{Other contributions}
+
+
+\section{Conclusion}
+
+
+\printbibliography
+\end{document}
