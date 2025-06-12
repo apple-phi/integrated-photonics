@@ -1,41 +1,52 @@
 [
-  {
-    "id": 1,
-    "description": "Sweep: coupling_length=0:30:15",
-    "params_input": {
-      "wg1_width": "0.5",
-      "wg2_width": "0.5",
-      "separation": "0.15",
-      "coupling_length": "0:30:15",
-      "center_wavelength": "1.55"
+    {
+        "id": 1,
+        "description": "Sweep: coupling_length=0:30:15",
+        "params_input": {
+            "wg1_width": "0.5",
+            "wg2_width": "0.5",
+            "separation": "0.15",
+            "coupling_length": "0:30:15",
+            "center_wavelength": "1.55"
+        },
+        "match_widths": false,
+        "timestamp": "2025-06-12T12:00:00.000000"
     },
-    "match_widths": false,
-    "timestamp": "2025-06-12T12:00:00.000000"
-  },
-  {
-    "id": 2,
-    "description": "Sweep: coupling_length=0:30:15, center_wavelength=1.31",
-    "params_input": {
-      "wg1_width": "0.5",
-      "wg2_width": "0.5",
-      "separation": "0.15",
-      "coupling_length": "0:30:15",
-      "center_wavelength": "1.31"
+    {
+        "id": 2,
+        "description": "Sweep: coupling_length=0:30:15, center_wavelength=1.31",
+        "params_input": {
+            "wg1_width": "0.5",
+            "wg2_width": "0.5",
+            "separation": "0.15",
+            "coupling_length": "0:30:15",
+            "center_wavelength": "1.31"
+        },
+        "match_widths": false,
+        "timestamp": "2025-06-12T12:00:00.000000"
     },
-    "match_widths": false,
-    "timestamp": "2025-06-12T12:00:00.000000"
-  },
-  {
-    "id": 3,
-    "description": "Sweep: wg1_width=0.1:1:8, wg2_width=0.1:1:8, separation=0.15:0.5:8 (matched widths)",
-    "params_input": {
-      "wg1_width": "0.1:1:8",
-      "wg2_width": "0.1:1:8",
-      "separation": "0.15:0.5:8",
-      "coupling_length": "10.0",
-      "center_wavelength": "1.55"
+    {
+        "id": 3,
+        "description": "Sweep: wg1_width=0.1:1:8, wg2_width=0.1:1:8, separation=0.15:0.5:8 (matched widths)",
+        "params_input": {
+            "wg1_width": "0.1:1:8",
+            "wg2_width": "0.1:1:8",
+            "separation": "0.15:0.5:8",
+            "coupling_length": "10.0",
+            "center_wavelength": "1.55"
+        },
+        "match_widths": true,
+        "timestamp": "2025-06-12T12:00:00.000000"
     },
-    "match_widths": true,
-    "timestamp": "2025-06-12T12:00:00.000000"
-  }
+    {
+        "params_input": {
+            "wg1_width": "0.36",
+            "wg2_width": "0.36",
+            "separation": "0.2:0.4:10",
+            "coupling_length": "10.0",
+            "center_wavelength": "1.55"
+        },
+        "match_widths": false,
+        "description": "Sweep sep"
+    }
 ]
