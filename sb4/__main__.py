@@ -206,11 +206,13 @@ def sweep(
         wg2_width_str = wg1_width_str
 
     current_sweep_config = {
-        "wg1_width_str": wg1_width_str,
-        "wg2_width_str": wg2_width_str,
-        "separation_str": separation_str,
-        "coupling_length_str": coupling_length_str,
-        "center_wavelength_str": center_wavelength_str,
+        "params_input": {
+            "wg1_width_str": wg1_width_str,
+            "wg2_width_str": wg2_width_str,
+            "separation_str": separation_str,
+            "coupling_length_str": coupling_length_str,
+            "center_wavelength_str": center_wavelength_str,
+        },
         "match_widths": match_widths,
     }
 
