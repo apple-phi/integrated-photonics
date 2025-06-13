@@ -22,6 +22,8 @@ with warnings.catch_warnings():
 lumapi = lumapi_raw  # For compatibility with existing code
 u = 1e-6  # Micrometer unit for convenience
 TE0 = "fundamental TE mode"
+TE1 = "first order TE mode"
+TE2 = "second order TE mode"
 SiO2 = "SiO2 (Glass) - Palik"
 Si = "Si (Silicon) - Palik"
 Xnorm = "2D X-normal"

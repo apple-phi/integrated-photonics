@@ -95,13 +95,24 @@
     },
     {
         "params_input": {
+            "wg1_width": "0.4",
+            "wg2_width": "1.28",
+            "separation": "0.15",
+            "coupling_length": "5:15:11",
+            "center_wavelength": "1.55"
+        },
+        "match_widths": false,
+        "description": "Sweep: coupling_length=5:15:11 wg1_width=0.4 wg2_width=1.28 separation=0.15 center_wavelength=1.55"
+    },
+    {
+        "params_input": {
             "wg1_width_str": "0.4",
             "wg2_width_str": "1.28",
             "separation_str": "0.15",
-            "coupling_length_str": "5:12:8",
+            "coupling_length_str": "13:15:3",
             "center_wavelength_str": "1.55"
         },
         "match_widths": false,
-        "description": "Sweep: coupling_length=5:12:8 wg1_width=0.4 wg2_width=1.28 separation=0.15 center_wavelength=1.55"
+        "description": "Sweep cl"
     }
 ]
