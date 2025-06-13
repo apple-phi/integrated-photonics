@@ -113,6 +113,17 @@
             "center_wavelength_str": "1.55"
         },
         "match_widths": false,
-        "description": "Sweep cl"
+        "description": "Sweep: coupling_length=13:15:3 wg1_width=0.4 wg2_width=1.28 separation=0.15 center_wavelength=1.55"
+    },
+    {
+        "params_input": {
+            "wg1_width": "0.3571428571428572",
+            "wg2_width": "0.3571428571428572",
+            "separation": "0.15:0.5:8",
+            "coupling_length": "10",
+            "center_wavelength": "1.55"
+        },
+        "match_widths": true,
+        "description": "Sweep: coupling_length=10 wg1_width=0.3571428571428572 wg2_width=0.3571428571428572 separation=0.15:0.5:8 center_wavelength=1.55"
     }
 ]
