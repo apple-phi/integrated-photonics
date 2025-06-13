@@ -679,7 +679,7 @@ def plot_sweep(
             logger.error("All Z_data for heatmap is NaN. Cannot plot.")
             raise typer.Exit(code=1)
 
-        pcm = plt.pcolormesh(X_mesh, Y_mesh, Z_data, shading="gouraud", cmap="viridis", vmin=np.nanmin(Z_data), vmax=np.nanmax(Z_data))
+        pcm = plt.pcolormesh(X_mesh, Y_mesh, Z_data, shading="gouraud", cmap="inferno", vmin=np.nanmin(Z_data), vmax=np.nanmax(Z_data))
         plt.colorbar(pcm, label=result_attribute)
         plt.xlabel(f"{param_name_x} (microns)")
         plt.ylabel(f"{param_name_y} (microns)")
