@@ -154,34 +154,42 @@ The TE\textsubscript{0} mode is launched at the input port.
 
 \section{Results}
 
+Throughout this section, graphs and figures may reference the quantities \texttt{T\_net\_br} (abbreviated to \texttt{br}) and \texttt{T\_net\_tr} (abbreviated to \texttt{tr}),
+which are the total power transfer fraction to the lower waveguide TE\textsubscript{0} mode monitor and the upper waveguide TE\textsubscript{0} mode monitor respectively.
+
 \subsection{TE\textsubscript{0}-TE\textsubscript{0} coupling}
 
 For equal waveguide widths, it is quite straightforward to achieve arbitrary TE\textsubscript{0}-TE\textsubscript{0} power transfer between the two coupled waveguides.
-With TE\textsubscript{0} launched at the input port of the upper waveguide, a co-located waveguide symmetrised across the separation gap supports TE\textsubscript{0} at the same effective index
-(subject to fabrication tolerances),
-and thus the TE\textsubscript{0} mode is coupled to the TE\textsubscript{0} mode of the lower waveguide.
+The fundamental principle enabling efficient power transfer between two modes is the phase matching condition,
+which dictates that their propagation constants, \(\beta_1\) and \(\beta_2\), must be closely matched, i.e., the phase mismatch \(\Delta\beta = \beta_1 - \beta_2 \approx 0\).
+Since the propagation constant is related to the effective index \(n_\text{eff}\) by \(\beta = k_0 n_\text{eff}\), where \(k_0 = 2\pi/\lambda\) is the free-space wavenumber,
+this condition implies that their effective indices must be nearly equal: \(n_{\text{eff},1} \approx n_{\text{eff},2}\).
+With TE\textsubscript{0} launched at the input port of the upper waveguide, an identically dimensioned co-located waveguide (symmetrised across the separation gap) supports a TE\textsubscript{0} mode with the same effective index
+(subject to fabrication tolerances), thus inherently satisfying the phase matching condition.
+Consequently, the TE\textsubscript{0} mode of the upper waveguide is efficiently coupled to the TE\textsubscript{0} mode of the lower waveguide.
 
-Other modes have a large phase mismatch \(\Delta\beta=k_0\Delta n_\text{eff}\gg 1\) with respect to TE\textsubscript{0},
-and hence cross-mode leakage has a negligible modal power beating amplitude of
-
+Other modes, such as higher-order TE modes (TE\textsubscript{1}, TE\textsubscript{2}, etc.) or TM modes, generally have significantly different effective indices compared to the TE\textsubscript{0} mode in the same waveguide geometry.
+This results in a large phase mismatch \(\Delta\beta=k_0\Delta n_\text{eff}\gg 1\) with respect to TE\textsubscript{0}.
+The power transfer amplitude \(A\) between two modes over a length \(L\) with coupling coefficient \(\kappa\) is proportional to \(\frac{\kappa^2}{\kappa^2 + {(\Delta\beta/2)}^2}\).
+Hence, for large \(\Delta\beta\), cross-mode leakage has a negligible modal power beating amplitude of
 \[A\propto\frac{\kappa^2}{\kappa^2+{(\frac{\Delta\beta}{2})}^2}\approx{\left(\frac{2\kappa}{\Delta\beta}\right)}^2\to 0.\]
 
-Moreover, by selecting the waveguide width to be sufficiently small, higher order modes can be suppressed,
-as they are not supported by the waveguide geometry.
+Moreover, by selecting the waveguide width \(w\) to be sufficiently small, specifically below the cutoff width for these higher-order modes, they become non-propagating (evanescent) and cannot effectively guide light or participate significantly in the coupling process.
+The cutoff condition for a mode occurs when its effective index \(n_\text{eff}\) approaches the refractive index of the cladding material \(n_\text{clad}\).
 
-The proportion of the power transferred to the lower waveguide is then a function of the coupling length \(L\),
+Assuming phase matching (\(\Delta\beta=0\)) and input power \(P_1(0)\) in the first waveguide, the power transferred \(P_2(L)\) to the second (initially unexcited) waveguide as a function of the coupling length \(L\) is given by
 \[
-P\propto\sin^2\left(\frac{\kappa L}{2}\right),
+P_2(L) = P_1(0)\sin^2(\kappa L),
 \]
-where \(\kappa\) is the coupling coefficient, which is a function of the waveguide geometry and the wavelength of the modal source.
+where \(\kappa\) is the coupling coefficient. This coefficient quantifies the strength of the interaction between the evanescent fields of the modes in the two waveguides and is a function of the waveguide geometry (widths, separation gap), material properties, and wavelength.
 
 \paragraph{Power transfer as a function of coupling length}
 Figure~\ref{fig:coupling_length} shows the power transfer as a function of the coupling length \(L\) for a fixed waveguide width of \SI{500}{\nm} and separation gap of \SI{150}{\nm},
 with the TE\textsubscript{0} mode launched at a wavelength of \SI{1550}{\nm} from the input port of the upper waveguide.
-The coupled mode theory predicts sinusoidal power beating, with half-power transfer to occur at a minimum coupling length of \(L_{3\text{db}}=\frac{\pi}{4\kappa}\),
-and for total power transfer to occur at a minimum coupling length \(L_c=\frac{\pi}{2\kappa}\).
-Indeed, we observe \(\hat{L}_{3\text{db}}\approx\SI{10}{\um}\) and \(\hat{L}_c\approx\SI{21}{\um}\) in the simulation results. 
-This implies a coupling coefficient of \(\hat{\kappa}\approx\SI{0.4}{\um^{-1}}\).
+The coupled mode theory predicts sinusoidal power beating. Half-power transfer (\(P_2(L_{3\text{dB}}) = P_1(0)/2\)) occurs when \(\kappa L_{3\text{dB}} = \pi/4\), so the minimum coupling length for this is \(L_{3\text{dB}}=\frac{\pi}{4\kappa}\).
+Total power transfer (\(P_2(L_c) = P_1(0)\)) occurs when \(\kappa L_c = \pi/2\), so the minimum coupling length for this is \(L_c=\frac{\pi}{2\kappa}\).
+Indeed, we observe \(\hat{L}_{3\text{dB}}\approx\SI{10}{\um}\) and \(\hat{L}_c\approx\SI{21}{\um}\) in the simulation results.
+
 
 \begin{figure}[h!]
   \centering
@@ -225,8 +233,9 @@ and in the next section we will explore the effect of varying the separation gap
 
 \paragraph{Optimising for a shorter wavelength}
 To additionally optimise a directional coupler for a shorter wavelength \(\lambda=\SI{1310}{\nm}\), we could repeat the above procedure with the same fixed waveguide width of \SI{500}{\nm} and separation gap of \SI{150}{\nm}.
-However, a shorter wavelength requires a larger coupling length to achieve the same fraction of power transfer.
-% TODO: add the maths for why
+However, a shorter wavelength generally requires a larger coupling length to achieve the same fraction of power transfer, or a modification of the waveguide geometry.
+The coupling coefficient \(\kappa\) is wavelength-dependent. For a fixed geometry, as \(\lambda\) decreases, a guided mode tends to become more confined within the waveguide core. This increased confinement reduces the extent of its evanescent field into the cladding and, consequently, into the adjacent waveguide. A reduced evanescent field overlap leads to a smaller \(\kappa\). Since the coupling length for total power transfer \(L_c = \frac{\pi}{2\kappa}\), a smaller \(\kappa\) necessitates a larger \(L_c\).
+Furthermore, the phase mismatch \(\Delta\beta = k_0 \Delta n_\text{eff} = \frac{2\pi}{\lambda} \Delta n_\text{eff}\) becomes more sensitive to any small inherent or fabrication-induced differences in \(n_\text{eff}\) at shorter wavelengths, potentially diminishing coupling efficiency if \(n_\text{eff}\) is not perfectly matched.
 
 Figure~\ref{fig:coupling_length_1310} shows the power transfer as a function of the coupling length \(L\) for a fixed waveguide width of \SI{500}{\nm} and separation gap of \SI{150}{\nm} over the same swept range as before,
 and within this range, we cannot even achieve half-power transfer,
@@ -243,14 +252,13 @@ or to modify the waveguide geometry.
 \paragraph{Reducing the coupling length}
 Assuming fabrication tolerances are not a concern
 and we do not require the dimensions of the directional coupler to match other components in the photonic circuit, like cascaded couplers or integrated Michelson interferometers, it is desireable to reduce the coupling length.
-
 Shorter directional couplers have a smaller footprint,
-less propagation loss and latency,
-and support a broader spectral bandwidth.
-Additionally they are more robust against accumulated phase mismatch arising from non-idealities in the fabrication process.
+less propagation loss (as loss is proportional to length) and latency,
+and often support a broader spectral bandwidth because the phase accumulation \(\kappa L\) is less sensitive to changes in \(\kappa(\lambda)\) if \(L\) is small.
+Additionally they are more robust against accumulated phase mismatch \(\Delta\beta L\) arising from non-idealities in the fabrication process.
 
-One strategy to achieve this for our directional coupler at \(\lambda=\SI{1310}{\nm}\) is to use the fact that decreasing the waveguide width increases the lateral evanescent extent of the modes, which in turn increases the coupling coefficient \(\kappa\) and thus decreases the coupling length \(L_c = \frac{\pi}{2\kappa}\).
-
+One strategy to achieve this for our directional coupler at \(\lambda=\SI{1310}{\nm}\) is to use the fact that decreasing the waveguide width (while ensuring the mode remains well-guided and above cutoff) increases the lateral evanescent extent of the modes.
+This is because a narrower core provides weaker confinement. The increased overlap of these more extensive evanescent fields between the two waveguides leads to a stronger interaction, and thus a larger coupling coefficient \(\kappa\). Since the coupling length for total power transfer \(L_c = \frac{\pi}{2\kappa}\), a larger \(\kappa\) results in a shorter \(L_c\).
 
 By reducing the waveguide width to \SI{400}{\nm}, we can achieve Figure~\ref{fig:coupling_length_1310_w400},
 which shows that we can achieve half-power transfer at \(\hat{L}_{3\text{db}}\approx\SI{11}{\um}\) and total power transfer at \(\hat{L}_c\approx\SI{23}{\um}\). This is much more comparable to the \(\hat{L}_{3\text{db}}\approx\SI{10}{\um}\) and \(\hat{L}_c\approx\SI{21}{\um}\) for the \SI{1550}{\nm} wavelength case with a \SI{500}{\nm} waveguide width.
@@ -271,7 +279,7 @@ namely the waveguide width and separation gap.
 Figure~\ref{fig:2D_sweep_equal_wg_vs_sep} shows the power transfer fraction to the lower waveguide TE\textsubscript{0} mode monitor
 as a function of the uniform waveguide width \(w\) swepth through \(w\in[0.1, 1.0]\,\unit{\um}\) and separation gap \(s\) swept through \(s\in[0.15, 0.5]\,\unit{\um}\) for a fixed coupling length of \SI{10}{\um} and input port TE\textsubscript{0} mode excitation at \SI{1550}{\nm}. For the majority of the parameter space, there is very weak coupling.
 However, we observe a ridge of strong power transfer along the entire separation axis at a waveguide width of \(w=\SI{0.36}{\um}\),
-with a peak at \(s=\SI{0.25}{\um}\). 
+with a peak at \(s=\SI{0.25}{\um}\).
 
 \begin{figure}[h!]
   \centering
@@ -281,9 +289,9 @@ with a peak at \(s=\SI{0.25}{\um}\).
 \end{figure}
 
 \paragraph{Effect of waveguide width}
-While a small waveguide width increases the evanescent overlap,
-it also reduces the mode confinement and increases propagation losses,
-hence there are very high bending-induced radiative losses for small waveguide widths.
+While a small waveguide width \(w\) increases the evanescent overlap (enhancing \(\kappa\)),
+it also reduces the mode confinement. As \(w\) decreases and approaches the cutoff width, the effective index \(n_\text{eff}\) of the mode approaches the refractive index of the cladding \(n_\text{clad}\).
+This weak confinement makes the mode highly susceptible to bending-induced radiative losses, particularly in the S-bend sections of the coupler. The bending loss coefficient \(\alpha_b\) typically increases exponentially as \(n_\text{eff}\) approaches \(n_\text{clad}\)\autocite{sakaiSimplifiedBendingLoss1979}.
 Figure~\ref{fig:high_bend_loss} shows the power intensity distribution across the waveguide plane
 for a waveguide width just before the ridge \(w=\SI{0.23}{\um}\) and at the optimal separation gap \(s=\SI{0.25}{\um}\).
 
@@ -296,30 +304,31 @@ From this it is clear that the mode is not well confined, and loses almost all o
   \label{fig:high_bend_loss}
 \end{figure}
 
-Very large waveguide widths, on the other hand, have much stronger mode confinement,
-with a smaller evanescent tail, which reduces the coupling coefficient \(\kappa\) and thus the power transfer fraction.
-(You could increase the coupling length \(L\) to compensate for this, in this plot it was held as constant.)
-The optimal waveguide width is thus a balance between these two effects,
-and the ridge of strong power transfer at \(w=\SI{0.36}{\um}\) is the result of this trade-off.
+Very large waveguide widths, on the other hand, provide much stronger mode confinement, meaning \(n_\text{eff}\) is significantly larger than \(n_\text{clad}\) and approaches the core index \(n_\text{core}\).
+This results in a smaller evanescent tail extending into the cladding, which reduces the coupling coefficient \(\kappa\). For a fixed coupling length \(L\), a smaller \(\kappa\) leads to a smaller power transfer fraction \(\sin^2(\kappa L)\).
+(One could increase \(L\) to compensate for a smaller \(\kappa\), but in Figure~\ref{fig:2D_sweep_equal_wg_vs_sep}, \(L\) was held constant.)
+The optimal waveguide width is thus a balance between these two effects: achieving sufficient evanescent field overlap for strong coupling (favoring smaller \(w\)) while maintaining strong enough mode confinement to minimize propagation and bending losses (favoring larger \(w\)).
+The observed ridge of strong power transfer at \(w=\SI{0.36}{\um}\) is the result of this trade-off for the given \(L=\SI{10}{\um}\).
 
 \paragraph{Effect of separation gap}
 
-Now that we have established the optimal waveguide width,
-in analysis of the separation gap, it may be more intuitive to fix the width at this optimum and consider effect of separation on the ridge profile,
+Now that we have established the optimal waveguide width for a fixed \(L\),
+in analysis of the separation gap \(s\), it may be more intuitive to fix the width at this optimum (\(w \approx \SI{0.36}{\um}\)) and consider the effect of separation on the ridge profile,
 which is shown in Figure~\ref{fig:coupled_power_ridge}.
-At a large separation, the power transfer fraction decays exponentially,
-but at a small separation, the power transfer fraction is also small and increases linearly with the separation gap.
+At a large separation, the power transfer fraction decays, which is expected as the coupling coefficient \(\kappa\) typically exhibits an approximately exponential dependence on \(s\), i.e., \(\kappa \propto e^{-\gamma s}\), where \(\gamma\) is related to the decay constant of the evanescent field in the cladding\autocite{dolph5CharacteristicsEvanescent2025}. Thus, as \(s\) increases, \(\kappa\) decreases significantly, leading to reduced power transfer for a fixed \(L\).
+However, at a very small separation, the power transfer fraction is also small and appears to increase with the separation gap initially.
 
-The former can be rationalised by the fact that the evanescent tails of the modes in each waveguide overlap less and less as the separation gap increases.
-However, the latter is less intuitive.
-At very small separation,
-the two-waveguide supermodes are heavily hybridized; effective indices split strongly,
-resulting in a large coupling coefficient \(\kappa\). However, since the coupling length \(L\) is fixed,
-the output phase of the power beating is not optimised for maximum cross-power transfer.
-Indeed, Figure~\ref{fig:2D_sweep_equal_wg_vs_sep} show that, for very small separations,
+% TODO: rigorously mathematically justify the exponential decay and linear increase
+% Is the linear increase due to some cancellation? Or possibly due to some quantity being very large? Does it come out in a Taylor expansion?
+
+The former (decay at large \(s\)) can be rationalised by the fact that the evanescent tails of the modes in each waveguide overlap less and less as the separation gap increases.
+The latter behaviour (increase from very small \(s\)) is less immediately intuitive but can be understood by considering the \(\sin^2(\kappa L)\) dependence.
+At very small separation \(s\), the two waveguides become very strongly coupled, and the system is better described by its supermodes (even and odd symmetric modes for identical waveguides). The propagation constants of these supermodes, \(\beta_e\) and \(\beta_o\), become significantly different, and the coupling coefficient \(\kappa = |\beta_e - \beta_o|/2\) becomes large.
+If \(L\) is fixed (here, \(L=\SI{10}{\um}\)), and \(\kappa\) is very large due to small \(s\), the argument \(\kappa L\) might be significantly greater than \(\pi/2\) (the first maximum for \(\sin^2(\kappa L)\)). For instance, if \(\kappa L\) is close to \(\pi\), the power transfer would be close to zero. As \(s\) increases slightly from its minimum, \(\kappa\) decreases. This decrease in \(\kappa\) could bring \(\kappa L\) closer to \(\pi/2\) (or \(3\pi/2\), etc.), thereby increasing the power transfer \(\sin^2(\kappa L)\).
+The peak in Figure~\ref{fig:coupled_power_ridge} at \(s=\SI{0.25}{\um}\) corresponds to the separation where \(\kappa(w=\SI{0.36}{\um}, s)L \approx \pi/2\) (or more generally, \((m+1/2)\pi\) for integer \(m\)).
+Indeed, Figure~\ref{fig:2D_sweep_equal_wg_vs_sep} shows that for very small separations,
 the ridge of strong cross-power transfer moves diagonally towards larger waveguide widths.
-Since increasing the waveguide width decreases the coupling coefficient \(\kappa\) by reducing the degree of hybridization,
-these two effects cancel out, and the power transfer fraction remains optimised at the fixed coupling length \(L\).
+This is because, for a fixed coupling length \(L\), as \(s\) decreases (which tends to increase \(\kappa\)), \(w\) must increase (which tends to decrease \(\kappa\) by increasing confinement) to maintain the condition \(\kappa(w,s) L \approx (m+1/2)\pi\) for optimal power transfer.
 
 \begin{figure}[h!]
   \centering
@@ -333,19 +342,27 @@ these two effects cancel out, and the power transfer fraction remains optimised 
 Designing for coupling across modes of different orders is less trivial. 
 For the TE\textsubscript{0}-TE\textsubscript{0} case we were able to rely on the fact that equal waveguide widths impose TE\textsubscript{0} phase matching across the separation gap,
 but this is not the case for general cross-order mode coupling.
+The primary condition for efficient coupling between mode \(m\) in waveguide 1 (width \(w_1\)) and mode \(n\) in waveguide 2 (width \(w_2\)) is phase matching: \(\beta_{1,m} \approx \beta_{2,n}\), which translates to \(n_{\text{eff},1,m}(w_1, \lambda) \approx n_{\text{eff},2,n}(w_2, \lambda)\).
 
 % I chose TE0-TE2
-% TODO: show whether TE0-TE1 is possible, or if parity forbids it / requires lateral displacement of the 2nd waveguide
+% TODO: rigorously show whether TE0-TE1 is possible, or if parity forbids it / requires lateral displacement of the 2nd waveguide
+% Specifically for the geometry described above.
+% Need to justify the choice of TE\textsubscript{0}-TE\textsubscript{2} coupling.
+Coupling between modes of different parity, such as TE\textsubscript{0} (even transverse field symmetry) and TE\textsubscript{1} (odd transverse field symmetry), is generally forbidden or very weak in symmetric directional couplers where the waveguides are aligned (no lateral offset). This is because the coupling coefficient \(\kappa\) involves an overlap integral of the mode fields. If the product of the fields has odd symmetry with respect to the center of the coupling region, the integral evaluates to zero.
+TE\textsubscript{2}, like TE\textsubscript{0}, possesses an even transverse field symmetry (for its dominant E-field component), allowing for a non-zero overlap integral and thus potentially strong coupling if phase matching is achieved.
 
 There is an additional step of design required to achieve cross-order mode coupling:
-matching the effective indices of the two modes across the separation gap.
+engineering the waveguide dimensions (typically their widths, \(w_1\) and \(w_2\)) to match the effective indices of the two desired modes across the separation gap at the operating wavelength.
 
 \paragraph{TE\textsubscript{0}-TE\textsubscript{2} coupling}
-Let us consider the example of designing a directional coupler that transfers maximum power from the TE\textsubscript{0} mode of the upper waveguide to the TE\textsubscript{2} mode of the lower waveguide. 
+Let us consider the example of designing a directional coupler that transfers maximum power from the TE\textsubscript{0} mode of the upper waveguide (width \(w_1\)) to the TE\textsubscript{2} mode of the lower waveguide (width \(w_2\)).
+To achieve phase matching, \(n_{\text{eff,TE0}}(w_1, \lambda) \approx n_{\text{eff,TE2}}(w_2, \lambda)\).
+Since higher-order modes generally have lower effective indices than lower-order modes in waveguides of the same width, achieving this condition typically requires \(w_2 > w_1\) if both waveguides are made of the same core and cladding materials. This is because \(n_\text{eff}\) for any given guided mode generally increases with waveguide width (for a mode well above cutoff).
 Recall Figure~\ref{fig:te_neff} from the first interim report\autocite{ngSB4IntegratedPhotonics2025}.
-This idealised planar case demonstrates that we expect that,
-with the upper waveguide width fixed at \(w_1=\SI{0.4}{\um}\),
-we expect it to be able to couple to the TE\textsubscript{2} mode of the lower waveguide when it is at a width \(1< w_2\leq 1.5\).
+This idealised planar waveguide case demonstrates that we expect that,
+with the upper waveguide width fixed at \(w_1=\SI{0.4}{\um}\) (supporting primarily TE\textsubscript{0}),
+it should be possible to couple to the TE\textsubscript{2} mode of the lower waveguide when its width \(w_2\) is significantly larger, such that \(n_{\text{eff,TE2}}(w_2)\) matches \(n_{\text{eff,TE0}}(w_1)\).
+The plot suggests that for \(n_{\text{eff,TE0}}(w_1=\SI{0.4}{\um})\), a matching \(n_{\text{eff,TE2}}(w_2)\) might occur for \(w_2\) in the range of \(1\,\unit{\um}\) to \(1.5\,\unit{\um}\).
 
 \begin{figure}[h!]
   \centering
@@ -355,7 +372,7 @@ we expect it to be able to couple to the TE\textsubscript{2} mode of the lower w
 \end{figure}
 
 To avoid adding additional monitors to the simulation sweep,
-it will suffice to use the upper output port TE\textsubscript{0} mode monitor as an inverse proxy for the lower output port TE\textsubscript{2} mode monitor.
+it will suffice to use the upper output port TE\textsubscript{0} mode monitor as an inverse proxy for the lower output port TE\textsubscript{2} mode monitor. That is, minimizing power remaining in the TE\textsubscript{0} mode of the input waveguide implies maximizing power transferred to other phase-matched modes (hopefully the desired TE\textsubscript{2} mode in the other waveguide, assuming other couplings are weak or non-phase-matched).
 One design strategy is to sweep both the lower waveguide width \(w_2\) through the range \(w_2\in(1,1.5]\,\unit{\um}\) and the coupling length \(L\in[10,40]\,\unit{\um}\) while keeping the separation gap fixed at \(s=\SI{0.15}{\um}\).
 This produces the heatmap in Figure~\ref{fig:te0_te2_coupling_heatmap} of the power fraction received by the proxy TE\textsubscript{0} mode monitor on the upper waveguide.
 \begin{figure}[h!]
@@ -365,12 +382,12 @@ This produces the heatmap in Figure~\ref{fig:te0_te2_coupling_heatmap} of the po
   \label{fig:te0_te2_coupling_heatmap}
 \end{figure}
 
-Clearly, we have a sinusoidal ridge of recorded power transfer
+Clearly, we have a sinusoidal ridge of recorded power transfer (more accurately, power \textit{not} transferred away from the input TE\textsubscript{0} mode)
 along the coupling length axis,
-at a waveguide width of \(w_2=\SI{1.28}{\um}\).
-Fixing that width and looking along at ridge results in Figure~\ref{fig:te0_te2_coupling_length}, showing the optimum coupling length \(L\) for maximum power transfer to the TE\textsubscript{2} mode of the lower waveguide 
+at a waveguide width of \(w_2=\SI{1.28}{\um}\). This \(w_2\) value is where phase matching \(n_{\text{eff,TE0}}(w_1=\SI{0.4}{\um}) \approx n_{\text{eff,TE2}}(w_2=\SI{1.28}{\um})\) is best achieved.
+Fixing that width and looking along at ridge results in Figure~\ref{fig:te0_te2_coupling_length}, showing the optimum coupling length \(L\) for maximum power transfer to the TE\textsubscript{2} mode of the lower waveguide (indicated by minimum power remaining in the upper TE\textsubscript{0} mode)
 to be \(\hat{L}\approx\SI{13}{\um}\). Figure~\ref{fig:cross_mode_power_distribution} shows the power intensity distribution across the waveguide plane at this coupling length,
-with the TE\textsubscript{0} mode monitor on the upper waveguide registering a power transfer fraction of \(0.0182\) and the TE\textsubscript{2} mode monitor on the lower waveguide registering a power transfer fraction of \(0.9235\). This means the TE\textsubscript{2} mode is excited to \(98.1\%\) of the total power fraction it shares with the TE\textsubscript{0} mode at the input port of the upper waveguide. There is some launched power unaccounted for, but that can be assigned to modal leakage.
+with the TE\textsubscript{0} mode monitor on the upper waveguide registering a power transfer fraction of \(0.0182\) with \(n_\text{eff}=2.217\) and the TE\textsubscript{2} mode monitor (the third mode filtered by TE/TM fraction in Lumerical) on the lower waveguide registering a power transfer fraction of \(0.9235\) with \(n_\text{eff}=2.223\). The close matching of these effective indices confirms the phase matching condition. This means the TE\textsubscript{2} mode is excited to approximately \(0.9235 / (0.9235 + 0.0182) \approx 98.1\%\) of the total power detected in these two specific modes at the output. There is some launched power unaccounted for (\(1 - 0.0182 - 0.9235 = 0.0583\), or about \(5.8\%\)), which can be attributed to radiation losses (e.g., at S-bends), coupling to other non-monitored modes, or scattering.
 
 This is the directional coupler shown originally in Figure~\ref{fig:s_bend_coupler}.
 
