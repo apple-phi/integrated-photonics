@@ -121,14 +121,14 @@ Likewise, this current, final report, ascends to the next level of abstraction,
 considering the whole structure of a S-bend directional coupler in its entirety.
 At this level, the previous theoretical frameworks serve purely as approximation,
 and we must account for bending losses, asymmetric couplers, and other practical and interesting considerations.
-This being analytically intractable, Lumerical's FDTD software\autocite{lumerical_fdtd} was utilised to simulate the directional coupler.
+This being analytically intractable, Lumerical's FDTD Solution software\autocite{lumerical_fdtd} was utilised to simulate the directional coupler.
 
 \section{Simulation setup}
 
 The geometry of our directional coupler is the traditional doubly-symmetric S-bend design,
 with a parallel coupling length connected in each waveguide to its input and output ports by S-bends.
 Each port is extended by a straight waveguide which extends through to \SI{1}{\um} outside the FDTD simulation region,
-which is otherwise internally padded on all sides by \SI{2.5}{\um} of perfectly matched layer (PML) boundary conditions.
+which is otherwise internally padded on all sides.
 The input port of the upper waveguide is excited by a modal source at the wavelength of interest.
 
 This form of the directional coupler is, by way of metaphor, structured as an aubade.
@@ -142,6 +142,8 @@ The waveguide depth into the plane is \SI{220}{\nm} for both waveguides,
 the ports on each end are separated by \SI{10}{\um} in the horizontal direction,
 and the poles of the S-bends are placed at \([(0,0), (\pm 5, 0), (\pm 5, \mp 5), (\pm 5, \mp 5)]\)\,\unit{\um}.
 The TE\textsubscript{0} mode is launched at the input port.
+
+Simulations were run with mesh accuracy set to 2 and a standard PML profile of 8 layers.
 
 % TODO: Add a figure of the S-bend directional coupler geometry.
 \begin{figure}[h!]
@@ -168,7 +170,7 @@ With TE\textsubscript{0} launched at the input port of the upper waveguide, an i
 (subject to fabrication tolerances), thus inherently satisfying the phase matching condition.
 Consequently, the TE\textsubscript{0} mode of the upper waveguide is efficiently coupled to the TE\textsubscript{0} mode of the lower waveguide.
 
-Other modes, such as higher-order TE modes (TE\textsubscript{1}, TE\textsubscript{2}, etc.) or TM modes, generally have significantly different effective indices compared to the TE\textsubscript{0} mode in the same waveguide geometry.
+Other modes, such as higher-order TE modes (TE\textsubscript{1}, TE\textsubscript{2}, etc.) or TM modes, have significantly different effective indices compared to the TE\textsubscript{0} mode in the same waveguide geometry.
 This results in a large phase mismatch \(\Delta\beta=k_0\Delta n_\text{eff}\gg 1\) with respect to TE\textsubscript{0}.
 The power transfer amplitude \(A\) between two modes over a length \(L\) with coupling coefficient \(\kappa\) is proportional to \(\frac{\kappa^2}{\kappa^2 + {(\Delta\beta/2)}^2}\).
 Hence, for large \(\Delta\beta\), cross-mode leakage has a negligible modal power beating amplitude of
@@ -291,7 +293,7 @@ with a peak at \(s=\SI{0.25}{\um}\).
 \paragraph{Effect of waveguide width}
 While a small waveguide width \(w\) increases the evanescent overlap (enhancing \(\kappa\)),
 it also reduces the mode confinement. As \(w\) decreases and approaches the cutoff width, the effective index \(n_\text{eff}\) of the mode approaches the refractive index of the cladding \(n_\text{clad}\).
-This weak confinement makes the mode highly susceptible to bending-induced radiative losses, particularly in the S-bend sections of the coupler. The bending loss coefficient \(\alpha_b\) typically increases exponentially as \(n_\text{eff}\) approaches \(n_\text{clad}\)\autocite{sakaiSimplifiedBendingLoss1979}.
+This weak confinement makes the mode highly susceptible to bending-induced radiative losses, particularly in the S-bend sections of the coupler. The bending loss coefficient \(\alpha_b\) increases exponentially as \(n_\text{eff}\) approaches \(n_\text{clad}\)\autocite{sakaiSimplifiedBendingLoss1979}.
 Figure~\ref{fig:high_bend_loss} shows the power intensity distribution across the waveguide plane
 for a waveguide width just before the ridge \(w=\SI{0.23}{\um}\) and at the optimal separation gap \(s=\SI{0.25}{\um}\).
 
@@ -315,7 +317,7 @@ The observed ridge of strong power transfer at \(w=\SI{0.36}{\um}\) is the resul
 Now that we have established the optimal waveguide width for a fixed \(L\),
 in analysis of the separation gap \(s\), it may be more intuitive to fix the width at this optimum (\(w \approx \SI{0.36}{\um}\)) and consider the effect of separation on the ridge profile,
 which is shown in Figure~\ref{fig:coupled_power_ridge}.
-At a large separation, the power transfer fraction decays, which is expected as the coupling coefficient \(\kappa\) typically exhibits an approximately exponential dependence on \(s\), i.e., \(\kappa \propto e^{-\gamma s}\), where \(\gamma\) is related to the decay constant of the evanescent field in the cladding\autocite{dolph5CharacteristicsEvanescent2025}. Thus, as \(s\) increases, \(\kappa\) decreases significantly, leading to reduced power transfer for a fixed \(L\).
+At a large separation, the power transfer fraction decays, which is expected as the coupling coefficient \(\kappa\) exhibits an approximately exponential dependence on \(s\), i.e., \(\kappa \propto e^{-\gamma s}\), where \(\gamma\) is related to the decay constant of the evanescent field in the cladding\autocite{dolph5CharacteristicsEvanescent2025}. Thus, as \(s\) increases, \(\kappa\) decreases significantly, leading to reduced power transfer for a fixed \(L\).
 However, at a very small separation, the power transfer fraction is also small and appears to increase with the separation gap initially.
 
 % TODO: rigorously mathematically justify the exponential decay and linear increase
@@ -323,7 +325,11 @@ However, at a very small separation, the power transfer fraction is also small a
 
 The former (decay at large \(s\)) can be rationalised by the fact that the evanescent tails of the modes in each waveguide overlap less and less as the separation gap increases.
 The latter behaviour (increase from very small \(s\)) is less immediately intuitive but can be understood by considering the \(\sin^2(\kappa L)\) dependence.
-At very small separation \(s\), the two waveguides become very strongly coupled, and the system is better described by its supermodes (even and odd symmetric modes for identical waveguides). The propagation constants of these supermodes, \(\beta_e\) and \(\beta_o\), become significantly different, and the coupling coefficient \(\kappa = |\beta_e - \beta_o|/2\) becomes large.
+At very small separation \(s\), the two waveguides become very strongly coupled, and the system is better described by its supermodes (even and odd symmetric modes for identical waveguides). The propagation constants of these supermodes, \(\beta_e\) and \(\beta_o\), become significantly different, and the coupling coefficient
+\[
+  \kappa = \frac{|\beta_e - \beta_o|}{2}
+\]
+becomes large.
 If \(L\) is fixed (here, \(L=\SI{10}{\um}\)), and \(\kappa\) is very large due to small \(s\), the argument \(\kappa L\) might be significantly greater than \(\pi/2\) (the first maximum for \(\sin^2(\kappa L)\)). For instance, if \(\kappa L\) is close to \(\pi\), the power transfer would be close to zero. As \(s\) increases slightly from its minimum, \(\kappa\) decreases. This decrease in \(\kappa\) could bring \(\kappa L\) closer to \(\pi/2\) (or \(3\pi/2\), etc.), thereby increasing the power transfer \(\sin^2(\kappa L)\).
 The peak in Figure~\ref{fig:coupled_power_ridge} at \(s=\SI{0.25}{\um}\) corresponds to the separation where \(\kappa(w=\SI{0.36}{\um}, s)L \approx \pi/2\) (or more generally, \((m+1/2)\pi\) for integer \(m\)).
 Indeed, Figure~\ref{fig:2D_sweep_equal_wg_vs_sep} shows that for very small separations,
@@ -348,16 +354,24 @@ The primary condition for efficient coupling between mode \(m\) in waveguide 1 (
 % TODO: rigorously show whether TE0-TE1 is possible, or if parity forbids it / requires lateral displacement of the 2nd waveguide
 % Specifically for the geometry described above.
 % Need to justify the choice of TE\textsubscript{0}-TE\textsubscript{2} coupling.
-Coupling between modes of different parity, such as TE\textsubscript{0} (even transverse field symmetry) and TE\textsubscript{1} (odd transverse field symmetry), is generally forbidden or very weak in symmetric directional couplers where the waveguides are aligned (no lateral offset). This is because the coupling coefficient \(\kappa\) involves an overlap integral of the mode fields. If the product of the fields has odd symmetry with respect to the center of the coupling region, the integral evaluates to zero.
+Coupling between modes of different parity, such as TE\textsubscript{0} (which has an even transverse field profile for its dominant component, e.g., \(E_y(x) = E_y(-x)\), if the waveguide axis is along \(z\) and the waveguide is symmetric about \(x=0\)) and TE\textsubscript{1} (which has an odd transverse field profile, e.g., \(E_y(x) = -E_y(-x)\)), is ideally forbidden in perfectly symmetric directional couplers where the waveguides are aligned. However, this ideal symmetry is rarely achieved in practice; common fabrication imperfections, such as lateral misalignments of even a few nanometers (e.g., <10~nm), can break this symmetry and induce non-negligible TE\textsubscript{0}-TE\textsubscript{1} cross-coupling, particularly when the separation gap is small.
+The theoretical basis for forbidden coupling in perfectly symmetric structures is that the coupling coefficient \(\kappa_{12}\) between a mode \(\mathbf{E}_1\) (with propagation constant \(\beta_1\)) in waveguide 1 and a mode \(\mathbf{E}_2\) (with propagation constant \(\beta_2\)) in waveguide 2, when waveguide 2 perturbs waveguide 1, can be expressed via coupled mode theory as:
+\begin{equation}
+  \kappa_{12} \propto\iint_{A} \mathbf{E}_{1t}^* \cdot \Delta\epsilon \mathbf{E}_{2t} \,\mathrm{d}x\,\mathrm{d}y
+  \label{eq:kappa_integral}
+\end{equation}
+where \(\Delta\epsilon=\epsilon_2 - \epsilon_b\) (the difference between the permittivity profile of the coupled system and that of the isolated waveguide 1 or background), \(\mathbf{E}_{1t}\) and \(\mathbf{E}_{2t}\) are the transverse electric field profiles of the modes (normalized to carry unit power). The integral is over the entire cross-sectional area \(A\).
+For a perfectly symmetric coupler geometry where the perturbation \(\Delta\epsilon\) is an even function of the transverse coordinate \(x\) (relative to the symmetry axis between the waveguides), if \(\mathbf{E}_{1t}\) has even parity in \(x\) (like TE\textsubscript{0}) and \(\mathbf{E}_{2t}\) has odd parity in \(x\) (like TE\textsubscript{1}), their scalar product \(\mathbf{E}_{1t}^* \cdot \mathbf{E}_{2t}\) will be an odd function of \(x\). Consequently, the entire integrand becomes an odd function with respect to \(x\), and its integral over a symmetric domain (e.g., \(x \in [-W, W]\)) evaluates to zero, thus \(\kappa_{12} = 0\).
 TE\textsubscript{2}, like TE\textsubscript{0}, possesses an even transverse field symmetry (for its dominant E-field component), allowing for a non-zero overlap integral and thus potentially strong coupling if phase matching is achieved.
 
 There is an additional step of design required to achieve cross-order mode coupling:
-engineering the waveguide dimensions (typically their widths, \(w_1\) and \(w_2\)) to match the effective indices of the two desired modes across the separation gap at the operating wavelength.
+engineering the waveguide dimension (typically their widths, \(w_1\) and \(w_2\)) to match the effective indices of the two desired modes across the separation gap at the operating wavelength.
+For such asymmetric directional couplers (where \(w_1 \neq w_2\)), the coupling coefficient \(\kappa\) that governs the power exchange and determines the coupling length \(L_c\) must be calculated using the general overlap integral, as the simpler supermode splitting formula \(\kappa = |\beta_e - \beta_o|/2\) is strictly valid only for couplers formed by identical waveguides.
 
 \paragraph{TE\textsubscript{0}-TE\textsubscript{2} coupling}
 Let us consider the example of designing a directional coupler that transfers maximum power from the TE\textsubscript{0} mode of the upper waveguide (width \(w_1\)) to the TE\textsubscript{2} mode of the lower waveguide (width \(w_2\)).
 To achieve phase matching, \(n_{\text{eff,TE0}}(w_1, \lambda) \approx n_{\text{eff,TE2}}(w_2, \lambda)\).
-Since higher-order modes generally have lower effective indices than lower-order modes in waveguides of the same width, achieving this condition typically requires \(w_2 > w_1\) if both waveguides are made of the same core and cladding materials. This is because \(n_\text{eff}\) for any given guided mode generally increases with waveguide width (for a mode well above cutoff).
+Since higher-order modes have lower effective indices than lower-order modes in waveguides of the same width, achieving this condition requires \(w_2 > w_1\) if both waveguides are made of the same core and cladding materials. This is because \(n_\text{eff}\) for any given guided mode increases with waveguide width (for a mode well above cutoff).
 Recall Figure~\ref{fig:te_neff} from the first interim report\autocite{ngSB4IntegratedPhotonics2025}.
 This idealised planar waveguide case demonstrates that we expect that,
 with the upper waveguide width fixed at \(w_1=\SI{0.4}{\um}\) (supporting primarily TE\textsubscript{0}),
@@ -378,7 +392,7 @@ This produces the heatmap in Figure~\ref{fig:te0_te2_coupling_heatmap} of the po
 \begin{figure}[h!]
   \centering
   \includegraphics[width=0.8\textwidth]{task3/sweep_plots/sweep_idx_7_sweep__coupling_length=10_40_6_wg1_width=0.4_wg2_width=1_1.5_8_separation=0.15_center_wavelength=1.55_T_net_tr_heatmap.png}
-  \caption{Cross-power transfer fraction at the upper waveguide TE\textsubscript{0} mode monitor as a function of lower waveguide width \(w_2\) and coupling length \(L\) for a fixed upper waveguide width of \(w_1=\SI{0.4}{\um}\) and separation gap of \(s=\SI{0.15}{\um}\) under input port TE\textsubscript{0} mode excitation at \SI{1550}{\nm}.}
+  \caption{Cross-power transfer fraction at the upper waveguide TE\textsubscript{0} mode monitor as a function of lower waveguide width \(w_2\) and coupling length \(L\) for a fixed upper waveguide width of \(w_1=\SI{0.4}{\um}\) and separation gap of \(s=\SI{0.15}{\um}\) under input port TE\textsubscript{0} mode excitation at \(\SI{1550}{\nm}\).}
   \label{fig:te0_te2_coupling_heatmap}
 \end{figure}
 
@@ -394,23 +408,35 @@ This is the directional coupler shown originally in Figure~\ref{fig:s_bend_coupl
 \begin{figure}[h!]
   \centering
   \includegraphics[width=0.8\textwidth]{task3/sweep_plots/sweep_idx_8_sweep__coupling_length=5_15_11_wg1_width=0.4_wg2_width=1.28_separation=0.15_center_wavelength=1.55_T_net_tr_line.png}
-  \caption{Power transfer fraction at the upper waveguide TE\textsubscript{0} mode monitor as a function of coupling length \(L\) for a fixed upper waveguide width of \(w_1=\SI{0.4}{\um}\), lower waveguide width of \(w_2=\SI{1.28}{\um}\), and separation gap of \(s=\SI{0.15}{\um}\) under input port TE\textsubscript{0} mode excitation at \SI{1550}{\nm}.}
+  \caption{Power transfer fraction at the upper waveguide TE\textsubscript{0} mode monitor as a function of coupling length \(L\) for a fixed upper waveguide width of \(w_1=\SI{0.4}{\um}\), lower waveguide width of \(w_2=\SI{1.28}{\um}\), and separation gap of \(s=\SI{0.15}{\um}\) under input port TE\textsubscript{0} mode excitation at \(\SI{1550}{\nm}\).}
   \label{fig:te0_te2_coupling_length}
 \end{figure}
 \begin{figure}[h!]
   \centering
   \includegraphics[width=0.8\textwidth]{task3/sim_1521_130625/z_plane_intensity.png}
-  \caption{Power intensity distribution across the waveguide plane at the coupling length \(L=\hat{L}\approx\SI{13}{\um}\) for a fixed upper waveguide width of \(w_1=\SI{0.4}{\um}\), lower waveguide width of \(w_2=\SI{1.28}{\um}\), and separation gap of \(s=\SI{0.15}{\um}\) under input port TE\textsubscript{0} mode excitation at \SI{1550}{\nm}.}
+  \caption{Power intensity distribution across the waveguide plane at the coupling length \(L=\hat{L}\approx\SI{13}{\um}\) for a fixed upper waveguide width of \(w_1=\SI{0.4}{\um}\), lower waveguide width of \(w_2=\SI{1.28}{\um}\), and separation gap of \(s=\SI{0.15}{\um}\) under input port TE\textsubscript{0} mode excitation at \(\SI{1550}{\nm}\).}
   \label{fig:cross_mode_power_distribution}
 \end{figure}
 
-
-
 \section{Other contributions}
-
+Upwards of 200 individual simulations were run during the writing of this report,
+with the vast majority being executed from Python.
+Given the lack of documentation on the Lumerical Python API,
+I found it essential to have docstrings and typehints available for all functions and methods called from the \texttt{lumapi.py} module.
+I have therefore contributed to the Lumerical Python API by adding typehints and docstrings,
+with the typehint stubfile available at \url{https://gist.github.com/apple-phi/2d583e2a4352f0dd9a10458b79c14448}.
 
 \section{Conclusion}
 
+We have demonstrated the design and optimization of such couplers for both TE\textsubscript{0}-TE\textsubscript{0} power transfer and, more challengingly, for cross-order TE\textsubscript{0}-TE\textsubscript{2} coupling.
+This involved a systematic exploration of the parameter space, including waveguide widths, separation gaps, and coupling lengths, revealing the delicate interplay of phase matching, evanescent field overlap, and higher-order mode suppression.
+The simulations have quantified how achieving specific coupling ratios, such as 3dB splitting or complete power transfer, necessitates careful tuning of these geometric parameters, and how these optima shift with operating wavelength.
+Furthermore, the investigation into cross-order coupling highlighted the critical role of precise dimensional control to achieve phase synchronicity between disparate modal profiles, moving beyond the symmetric idealisations of basic coupled mode theory to engineer specific inter-modal interactions.
+
+However, the analysis has neglegted a quantification of the effects of fabrication tolerances, which can significantly impact the performance of these couplers in practice,
+as well as the potential for polarization cross-coupling.
+
+Future explorations might ascend further up the chain of abstraction, considering the integration of these directional couplers into larger photonic circuits, the impact of fabrication tolerances on device performance, or the design of couplers for more exotic modal or polarization manipulations, thereby continuing the \textit{mise en abyme} of photonic system design.
 
 \printbibliography
 \end{document}
